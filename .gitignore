@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+
+# Keep the prepared demo baseline database in GitHub so a fresh Railway deploy
+# starts from the exact tested state. Runtime persistence should use PLM_DB_PATH.
+data/*.db
+!data/plm_demo.db
+*.db-shm
+*.db-wal
+*.db-journal
+
+uploads/*
+!uploads/.gitkeep
+.env
+.env.*
+!.env.example

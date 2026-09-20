@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: plm_demo
+      POSTGRES_USER: plm
+      POSTGRES_PASSWORD: plm_demo_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U plm -d plm_demo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - plm_pgdata:/var/lib/postgresql/data
+
+  app:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+psycopg://plm:plm_demo_password@db:5432/plm_demo
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./uploads:/app/uploads
+
+volumes:
+  plm_pgdata:

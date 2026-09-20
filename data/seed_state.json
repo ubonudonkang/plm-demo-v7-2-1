@@ -1,0 +1,2275 @@
+{
+  "products": [
+    {
+      "id": "PRD-1042",
+      "name": "YafunYafun Prepaid",
+      "cat": "Tariff Plans",
+      "sub": "Prepaid",
+      "owner": "Chioma Agballah",
+      "status": "Active",
+      "price": "₦11.00 / min",
+      "ver": "v7.2",
+      "eff": "2026-03-01",
+      "subs": "14.2m",
+      "changed": "2026-07-14",
+      "current": {
+        "serviceClass": "25",
+        "division": "Marketing",
+        "cat": "Tariff Plans",
+        "subcategory": "Prepaid",
+        "template": "TPL-018",
+        "name": "YafunYafun Prepaid",
+        "eff": "2026-03-01",
+        "expiry": "",
+        "migMethod": "USSD Self-Service",
+        "migUssd": "*123*2*6#",
+        "migFirstFee": "0",
+        "migSubFee": "102",
+        "migCycle": "30",
+        "migNote": "",
+        "dailyAccessFee": "N/A",
+        "insufficientRate": "N/A",
+        "firstMinRate": "33.5k/sec",
+        "localVoiceRate": "11.00/min",
+        "localSmsRate": "₦6/SMS",
+        "paygoRate": "3.07",
+        "intlVoice": "Standard IDD Rates Applicable",
+        "intlSms": "Standard IDD Rates Applicable",
+        "roamVoice": "Standard voice/sms roaming tariff",
+        "roamData": "Standard Data roaming tariff",
+        "chargingSequence": "",
+        "wallet": "Bonus data first",
+        "price": "₦11.00 / min",
+        "discount": "",
+        "benefit": "",
+        "validity": "30",
+        "eligibility": "Prepaid, all segments",
+        "notification": "Standard notification",
+        "channels": [
+          "MyMTN",
+          "USSD"
+        ],
+        "bonusEnabled": false,
+        "bonusLocalVoice": "",
+        "bonusLocalSms": "",
+        "bonusPaygo": "",
+        "addons": []
+      }
+    },
+    {
+      "id": "PRD-1088",
+      "name": "BetaTalk",
+      "cat": "Tariff Plans",
+      "sub": "Prepaid",
+      "owner": "Chioma Agballah",
+      "status": "Active",
+      "price": "₦4.50 / min",
+      "ver": "v5.0",
+      "eff": "2026-01-15",
+      "subs": "8.7m",
+      "changed": "2026-06-02",
+      "current": {
+        "serviceClass": "46",
+        "division": "Marketing",
+        "cat": "Tariff Plans",
+        "subcategory": "Prepaid",
+        "template": "TPL-018",
+        "name": "BetaTalk",
+        "eff": "2026-01-15",
+        "expiry": "",
+        "migMethod": "USSD Self-Service",
+        "migUssd": "*123*2*3#",
+        "migFirstFee": "0",
+        "migSubFee": "102",
+        "migCycle": "30",
+        "migNote": "",
+        "dailyAccessFee": "N/A",
+        "insufficientRate": "N/A",
+        "firstMinRate": "N/A",
+        "localVoiceRate": "4.50/min",
+        "localSmsRate": "₦4/SMS",
+        "paygoRate": "3.07",
+        "intlVoice": "Standard IDD Rates Applicable",
+        "intlSms": "Standard IDD Rates Applicable",
+        "roamVoice": "Standard voice/sms roaming tariff",
+        "roamData": "Standard Data roaming tariff",
+        "chargingSequence": "",
+        "wallet": "Bonus data first",
+        "price": "₦4.50 / min",
+        "discount": "",
+        "benefit": "",
+        "validity": "30",
+        "eligibility": "Prepaid, all segments",
+        "notification": "Standard notification",
+        "channels": [
+          "MyMTN",
+          "USSD",
+          "SMS"
+        ],
+        "bonusEnabled": true,
+        "bonusLocalVoice": "33.5k/sec (from MA), 1st and 5th mins",
+        "bonusLocalSms": "",
+        "bonusPaygo": "",
+        "addons": []
+      }
+    },
+    {
+      "id": "PRD-1103",
+      "name": "Pulse",
+      "cat": "Tariff Plans",
+      "sub": "Prepaid",
+      "owner": "Andrew Akoh",
+      "status": "Active",
+      "price": "₦11.00 / min",
+      "ver": "v9.1",
+      "eff": "2026-05-20",
+      "subs": "22.9m",
+      "changed": "2026-08-04",
+      "current": {
+        "serviceClass": "44",
+        "division": "Marketing",
+        "cat": "Tariff Plans",
+        "subcategory": "Prepaid",
+        "template": "TPL-018",
+        "name": "Pulse",
+        "eff": "2026-05-20",
+        "expiry": "",
+        "migMethod": "USSD Self-Service",
+        "migUssd": "*123*2*9#",
+        "migFirstFee": "0",
+        "migSubFee": "102",
+        "migCycle": "30",
+        "migNote": "",
+        "dailyAccessFee": "N/A",
+        "insufficientRate": "N/A",
+        "firstMinRate": "20k/sec",
+        "localVoiceRate": "11.00/min",
+        "localSmsRate": "₦6/SMS",
+        "paygoRate": "3.07",
+        "intlVoice": "Standard IDD Rates Applicable",
+        "intlSms": "Standard IDD Rates Applicable",
+        "roamVoice": "Standard voice/sms roaming tariff",
+        "roamData": "Standard Data roaming tariff",
+        "chargingSequence": "",
+        "wallet": "Bonus data first",
+        "price": "₦11.00 / min",
+        "discount": "",
+        "benefit": "Nightlife bundle eligible",
+        "validity": "30",
+        "eligibility": "Prepaid, all segments",
+        "notification": "Mass customer communication",
+        "channels": [
+          "MyMTN",
+          "USSD",
+          "SMS",
+          "Eshop"
+        ],
+        "bonusEnabled": false,
+        "bonusLocalVoice": "",
+        "bonusLocalSms": "",
+        "bonusPaygo": "",
+        "addons": [
+          {
+            "name": "Nightlife Bundle",
+            "benefitType": "Data",
+            "benefitValue": "500MB",
+            "price": "75",
+            "trigger": "11pm–6am window",
+            "validityType": "Recurring Window",
+            "validityValue": "11pm–6am",
+            "access": "",
+            "channelRestriction": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRD-1157",
+      "name": "XtraSpecial",
+      "cat": "Tariff Plans",
+      "sub": "Prepaid",
+      "owner": "Andrew Akoh",
+      "status": "Active",
+      "price": "₦8.00 / min",
+      "ver": "v3.4",
+      "eff": "2025-11-01",
+      "subs": "640k",
+      "changed": "2026-08-12",
+      "current": {
+        "serviceClass": "42",
+        "division": "Marketing",
+        "cat": "Tariff Plans",
+        "subcategory": "Prepaid",
+        "template": "TPL-018",
+        "name": "XtraSpecial",
+        "eff": "2025-11-01",
+        "expiry": "",
+        "migMethod": "Contract-Based",
+        "migUssd": "",
+        "migFirstFee": "0",
+        "migSubFee": "0",
+        "migCycle": "30",
+        "migNote": "Contract-based migration; standard USSD fee rule does not apply.",
+        "dailyAccessFee": "N/A",
+        "insufficientRate": "N/A",
+        "firstMinRate": "N/A",
+        "localVoiceRate": "8.00/min",
+        "localSmsRate": "₦5/SMS",
+        "paygoRate": "3.07",
+        "intlVoice": "Standard IDD Rates Applicable",
+        "intlSms": "Standard IDD Rates Applicable",
+        "roamVoice": "Standard voice/sms roaming tariff",
+        "roamData": "Standard Data roaming tariff",
+        "chargingSequence": "",
+        "wallet": "Bonus data first",
+        "price": "₦8.00 / min",
+        "discount": "",
+        "benefit": "",
+        "validity": "30",
+        "eligibility": "Postpaid only",
+        "notification": "Standard notification",
+        "channels": [
+          "MyMTN"
+        ],
+        "bonusEnabled": false,
+        "bonusLocalVoice": "",
+        "bonusLocalSms": "",
+        "bonusPaygo": "",
+        "addons": []
+      }
+    },
+    {
+      "id": "PRD-2201",
+      "name": "Daily Data 1.5GB",
+      "cat": "Data Bundles",
+      "sub": "Commercial",
+      "owner": "Uche Chiemejonam",
+      "status": "Active",
+      "price": "₦500",
+      "ver": "v4.1",
+      "eff": "2026-04-02",
+      "subs": "3.4m",
+      "changed": "2026-08-18"
+    },
+    {
+      "id": "PRD-2244",
+      "name": "Weekly Data 6GB",
+      "cat": "Data Bundles",
+      "sub": "Commercial",
+      "owner": "Uche Chiemejonam",
+      "status": "Monitoring",
+      "price": "₦2,500",
+      "ver": "v6.0",
+      "eff": "2026-08-19",
+      "subs": "1.9m",
+      "changed": "2026-08-19"
+    },
+    {
+      "id": "PRD-2290",
+      "name": "Monthly Data 25GB",
+      "cat": "Data Bundles",
+      "sub": "Commercial",
+      "owner": "Uche Chiemejonam",
+      "status": "Active",
+      "price": "₦8,000",
+      "ver": "v11.3",
+      "eff": "2026-06-01",
+      "subs": "2.6m",
+      "changed": "2026-08-21"
+    },
+    {
+      "id": "PRD-2317",
+      "name": "Business Monthly 40GB",
+      "cat": "Data Bundles",
+      "sub": "Business",
+      "owner": "Stanley Ezihe",
+      "status": "Active",
+      "price": "₦14,000",
+      "ver": "v2.2",
+      "eff": "2026-02-10",
+      "subs": "212k",
+      "changed": "2026-05-30"
+    },
+    {
+      "id": "PRD-3105",
+      "name": "XtraTime",
+      "cat": "Loan Services",
+      "sub": "Loan Products",
+      "owner": "Wasiu Isiaka",
+      "status": "Reconciliation Pending",
+      "price": "15% service fee",
+      "ver": "v8.5",
+      "eff": "2026-08-22",
+      "subs": "9.1m",
+      "changed": "2026-08-22"
+    },
+    {
+      "id": "PRD-3140",
+      "name": "XtraByte",
+      "cat": "Loan Services",
+      "sub": "Loan Products",
+      "owner": "Wasiu Isiaka",
+      "status": "Active",
+      "price": "15% service fee",
+      "ver": "v4.0",
+      "eff": "2026-03-18",
+      "subs": "5.5m",
+      "changed": "2026-07-01"
+    },
+    {
+      "id": "PRD-4011",
+      "name": "Roaming Zone A Daily",
+      "cat": "Roaming Bundles",
+      "sub": "Zone A",
+      "owner": "Chike Opara",
+      "status": "Active",
+      "price": "₦5,500",
+      "ver": "v2.1",
+      "eff": "2026-01-08",
+      "subs": "48k",
+      "changed": "2026-04-22"
+    },
+    {
+      "id": "PRD-5002",
+      "name": "Recharge Bonus 200%",
+      "cat": "Offers",
+      "sub": "Recharge Offers",
+      "owner": "Tunde Elesho",
+      "status": "Retiring",
+      "price": "Bonus 200%",
+      "ver": "v3.0",
+      "eff": "2025-09-01",
+      "subs": "1.1m",
+      "changed": "2026-08-15"
+    },
+    {
+      "id": "PRD-5031",
+      "name": "CVM Winback Data Offer",
+      "cat": "Offers",
+      "sub": "CVM Offers",
+      "owner": "Tunde Elesho",
+      "status": "Active",
+      "price": "₦1,200",
+      "ver": "v1.6",
+      "eff": "2026-07-05",
+      "subs": "380k",
+      "changed": "2026-07-05",
+      "current": {
+        "division": "Marketing",
+        "cat": "Offers",
+        "subcategory": "CVM Offers",
+        "name": "CVM Winback Data Offer",
+        "serviceClass": "CVM_WINBACK",
+        "eff": "2026-07-05",
+        "expiry": "2026-08-15",
+        "price": "₦1,200",
+        "benefitType": "Data",
+        "benefitUnit": "Volume",
+        "benefitValue": "1GB",
+        "localSmsRate": "₦4/SMS",
+        "eligibility": "Prepaid, all segments",
+        "wallet": "Bonus data first",
+        "notification": "Standard notification",
+        "channels": [
+          "MyMTN",
+          "USSD"
+        ],
+        "bonusEnabled": false,
+        "addons": []
+      }
+    },
+    {
+      "id": "PRD-5010",
+      "name": "Device Financing Offer",
+      "cat": "Offers",
+      "sub": "Device Offers",
+      "owner": "Mutolib Ottan",
+      "status": "Draft",
+      "price": "Not set",
+      "ver": "draft",
+      "eff": "—",
+      "subs": "—",
+      "changed": "2026-08-20"
+    },
+    {
+      "id": "PRD-6003",
+      "name": "Bundle Completion STV",
+      "cat": "Bundle Features",
+      "sub": "Bundle Features",
+      "owner": "Nisarg Shukla",
+      "status": "Active",
+      "price": "Derived",
+      "ver": "v2.0",
+      "eff": "2026-02-01",
+      "subs": "—",
+      "changed": "2026-06-11"
+    },
+    {
+      "id": "PRD-1002",
+      "name": "Legacy Prepaid Classic",
+      "cat": "Tariff Plans",
+      "sub": "Prepaid",
+      "owner": "Unassigned",
+      "status": "Retired",
+      "price": "₦15.00 / min",
+      "ver": "v2.0",
+      "eff": "2019-05-01",
+      "subs": "0",
+      "changed": "2024-11-30"
+    },
+    {
+      "id": "PRD-2101",
+      "name": "Hourly Data 100MB",
+      "cat": "Data Bundles",
+      "sub": "Commercial",
+      "owner": "Unassigned",
+      "status": "Archived",
+      "price": "₦100",
+      "ver": "v1.4",
+      "eff": "2018-03-01",
+      "subs": "0",
+      "changed": "2023-02-14"
+    }
+  ],
+  "requests": [
+    {
+      "id": "REQ-2026-0412",
+      "type": "Modify",
+      "typeKey": "modify",
+      "target": "PRD-2290 Monthly Data 25GB",
+      "title": "Price increase, Monthly Data 25GB",
+      "owner": "Uche Chiemejonam",
+      "status": "Pending Approval",
+      "tier": 3,
+      "ver": "v11.4",
+      "submitted": "2026-08-21 09:14",
+      "sla": "Breached by 6h",
+      "slaBad": true,
+      "summary": "Increase the monthly 25GB bundle price from ₦8,000 to ₦8,750 in line with the approved commercial authority band.",
+      "diffs": [
+        {
+          "f": "Price",
+          "o": "₦8,000",
+          "n": "₦8,750",
+          "mat": true
+        },
+        {
+          "f": "Discount ceiling",
+          "o": "10%",
+          "n": "7.5%",
+          "mat": true
+        },
+        {
+          "f": "Validity",
+          "o": "30 days",
+          "n": "30 days",
+          "mat": false
+        },
+        {
+          "f": "Channel copy",
+          "o": "Standard",
+          "n": "Revised",
+          "mat": false
+        }
+      ],
+      "approvals": [
+        {
+          "role": "Product Owner",
+          "who": "Uche Chiemejonam",
+          "state": "Approved",
+          "ts": "2026-08-21 10:02"
+        },
+        {
+          "role": "Pricing / MKT BI",
+          "who": "Lucky Christopher",
+          "state": "Approved",
+          "ts": "2026-08-21 14:40"
+        },
+        {
+          "role": "Business Assurance",
+          "who": "Mercy Andrew",
+          "state": "Pending",
+          "ts": "—"
+        },
+        {
+          "role": "Customer Experience",
+          "who": "Bolutito Ayodeji",
+          "state": "Pending",
+          "ts": "—"
+        },
+        {
+          "role": "Technology",
+          "who": "Nisarg Shukla",
+          "state": "Approved",
+          "ts": "2026-08-21 16:11"
+        }
+      ],
+      "gates": [
+        [
+          "G1",
+          "Automated validation",
+          "pass",
+          "12 rules passed"
+        ],
+        [
+          "G2",
+          "Risk classification",
+          "pass",
+          "Tier 3, locked"
+        ],
+        [
+          "G3",
+          "Regulatory applicability",
+          "pass",
+          "Applicable, NCC filing attached"
+        ],
+        [
+          "G4",
+          "Configuration lock",
+          "pass",
+          "Locked 21 Aug 09:14"
+        ],
+        [
+          "G5",
+          "Segregation of duties",
+          "pass",
+          "No conflict"
+        ],
+        [
+          "G6",
+          "Complete approval",
+          "active",
+          "2 of 5 outstanding"
+        ],
+        [
+          "G7",
+          "Test evidence",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G8",
+          "Rollback readiness",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G9",
+          "Synchronised effective dates",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G10",
+          "Full acknowledgement",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G11",
+          "Reconciliation",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G12",
+          "Monitoring closure",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G13",
+          "Evidence immutability",
+          "wait",
+          "Applies on closure"
+        ]
+      ]
+    },
+    {
+      "id": "REQ-2026-0399",
+      "type": "Modify",
+      "typeKey": "modify",
+      "target": "PRD-3105 XtraTime",
+      "title": "Charging priority change, XtraTime",
+      "owner": "Wasiu Isiaka",
+      "status": "Reconciliation Pending",
+      "tier": 4,
+      "ver": "v8.5",
+      "submitted": "2026-08-18 11:30",
+      "sla": "Within SLA",
+      "slaBad": false,
+      "summary": "Change wallet depletion order so the promotional wallet is consumed before the main wallet.",
+      "diffs": [
+        {
+          "f": "Wallet priority",
+          "o": "Main wallet first",
+          "n": "Promotional wallet first",
+          "mat": true
+        },
+        {
+          "f": "Charging sequence",
+          "o": "Base then add-on",
+          "n": "Add-on then base",
+          "mat": true
+        }
+      ],
+      "approvals": [
+        {
+          "role": "Product Owner",
+          "who": "Wasiu Isiaka",
+          "state": "Approved",
+          "ts": "2026-08-18 12:00"
+        },
+        {
+          "role": "Business Assurance",
+          "who": "Mercy Andrew",
+          "state": "Approved",
+          "ts": "2026-08-18 15:22"
+        },
+        {
+          "role": "Finance",
+          "who": "Stanley Ezihe",
+          "state": "Approved",
+          "ts": "2026-08-19 09:05"
+        },
+        {
+          "role": "Legal / Regulatory",
+          "who": "Chike Opara",
+          "state": "Approved",
+          "ts": "2026-08-19 11:47"
+        },
+        {
+          "role": "Executive Sponsor",
+          "who": "Andrew Akoh",
+          "state": "Approved",
+          "ts": "2026-08-19 16:30"
+        }
+      ],
+      "gates": [
+        [
+          "G1",
+          "Automated validation",
+          "pass",
+          "All rules passed"
+        ],
+        [
+          "G2",
+          "Risk classification",
+          "pass",
+          "Tier 4, validated by Business Assurance"
+        ],
+        [
+          "G3",
+          "Regulatory applicability",
+          "pass",
+          "Not applicable, documented"
+        ],
+        [
+          "G4",
+          "Configuration lock",
+          "pass",
+          "Locked 18 Aug 11:30"
+        ],
+        [
+          "G5",
+          "Segregation of duties",
+          "pass",
+          "No conflict"
+        ],
+        [
+          "G6",
+          "Complete approval",
+          "pass",
+          "5 of 5 complete"
+        ],
+        [
+          "G7",
+          "Test evidence",
+          "pass",
+          "Accepted by Business Assurance"
+        ],
+        [
+          "G8",
+          "Rollback readiness",
+          "pass",
+          "Rehearsed, 22 min"
+        ],
+        [
+          "G9",
+          "Synchronised effective dates",
+          "pass",
+          "22 Aug 00:00 across 7 systems"
+        ],
+        [
+          "G10",
+          "Full acknowledgement",
+          "block",
+          "CRM did not acknowledge"
+        ],
+        [
+          "G11",
+          "Reconciliation",
+          "block",
+          "1 field-level mismatch"
+        ],
+        [
+          "G12",
+          "Monitoring closure",
+          "wait",
+          "Blocked upstream"
+        ],
+        [
+          "G13",
+          "Evidence immutability",
+          "wait",
+          "Applies on closure"
+        ]
+      ]
+    },
+    {
+      "id": "REQ-2026-0418",
+      "type": "Create",
+      "typeKey": "create",
+      "target": "Youth Weekly Data 4GB",
+      "title": "New product, Youth Weekly Data 4GB",
+      "owner": "Tunde Elesho",
+      "status": "Testing",
+      "tier": 2,
+      "ver": "v1.0",
+      "submitted": "2026-08-19 08:45",
+      "sla": "Within SLA",
+      "slaBad": false,
+      "summary": "New weekly data bundle targeting the 18 to 25 segment, cloned from the certified commercial data bundle template.",
+      "diffs": [],
+      "approvals": [
+        {
+          "role": "Product Owner",
+          "who": "Tunde Elesho",
+          "state": "Approved",
+          "ts": "2026-08-19 09:30"
+        },
+        {
+          "role": "Customer Experience",
+          "who": "Bolutito Ayodeji",
+          "state": "Approved",
+          "ts": "2026-08-19 13:15"
+        },
+        {
+          "role": "Technology",
+          "who": "Nisarg Shukla",
+          "state": "Approved",
+          "ts": "2026-08-20 10:02"
+        }
+      ],
+      "gates": [
+        [
+          "G1",
+          "Automated validation",
+          "pass",
+          "All rules passed"
+        ],
+        [
+          "G2",
+          "Risk classification",
+          "pass",
+          "Tier 2, confirmed"
+        ],
+        [
+          "G3",
+          "Regulatory applicability",
+          "pass",
+          "Not applicable, documented"
+        ],
+        [
+          "G4",
+          "Configuration lock",
+          "pass",
+          "Locked 19 Aug 08:45"
+        ],
+        [
+          "G5",
+          "Segregation of duties",
+          "pass",
+          "No conflict"
+        ],
+        [
+          "G6",
+          "Complete approval",
+          "pass",
+          "3 of 3 complete"
+        ],
+        [
+          "G7",
+          "Test evidence",
+          "active",
+          "18 of 24 scenarios executed"
+        ],
+        [
+          "G8",
+          "Rollback readiness",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G9",
+          "Synchronised effective dates",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G10",
+          "Full acknowledgement",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G11",
+          "Reconciliation",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G12",
+          "Monitoring closure",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G13",
+          "Evidence immutability",
+          "wait",
+          "Applies on closure"
+        ]
+      ]
+    },
+    {
+      "id": "REQ-2026-0424",
+      "type": "Bulk change",
+      "typeKey": "bulk",
+      "target": "148 products",
+      "title": "VAT rate alignment across commercial bundles",
+      "owner": "Stanley Ezihe",
+      "status": "Returned for Correction",
+      "tier": 4,
+      "ver": "v1.1",
+      "submitted": "2026-08-20 15:05",
+      "sla": "Paused",
+      "slaBad": false,
+      "summary": "Apply the revised VAT treatment to 148 commercial and business data bundles.",
+      "diffs": [
+        {
+          "f": "Tax treatment",
+          "o": "VAT inclusive",
+          "n": "VAT exclusive",
+          "mat": true
+        }
+      ],
+      "approvals": [
+        {
+          "role": "Product Owner",
+          "who": "Stanley Ezihe",
+          "state": "Approved",
+          "ts": "2026-08-20 15:40"
+        },
+        {
+          "role": "Finance",
+          "who": "Lucky Christopher",
+          "state": "Returned",
+          "ts": "2026-08-21 08:20",
+          "note": "Impacted list includes 11 retired products. Re-scope the population and resubmit."
+        }
+      ],
+      "gates": [
+        [
+          "G1",
+          "Automated validation",
+          "block",
+          "11 records failed population validation"
+        ],
+        [
+          "G2",
+          "Risk classification",
+          "pass",
+          "Tier 4, aggregate impact"
+        ],
+        [
+          "G3",
+          "Regulatory applicability",
+          "active",
+          "Awaiting determination"
+        ],
+        [
+          "G4",
+          "Configuration lock",
+          "pass",
+          "Released on return"
+        ],
+        [
+          "G5",
+          "Segregation of duties",
+          "pass",
+          "No conflict"
+        ],
+        [
+          "G6",
+          "Complete approval",
+          "block",
+          "Returned by Finance"
+        ],
+        [
+          "G7",
+          "Test evidence",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G8",
+          "Rollback readiness",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G9",
+          "Synchronised effective dates",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G10",
+          "Full acknowledgement",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G11",
+          "Reconciliation",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G12",
+          "Monitoring closure",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G13",
+          "Evidence immutability",
+          "wait",
+          "Applies on closure"
+        ]
+      ]
+    },
+    {
+      "id": "REQ-2026-0428",
+      "type": "Suspend",
+      "typeKey": "suspend",
+      "target": "PRD-1157 XtraSpecial",
+      "title": "Sale-stop, XtraSpecial",
+      "owner": "Andrew Akoh",
+      "status": "Approved",
+      "tier": 3,
+      "ver": "v3.5",
+      "submitted": "2026-08-17 10:00",
+      "sla": "Within SLA",
+      "slaBad": false,
+      "summary": "Stop new sales while a charging defect is investigated. Existing subscribers retain full entitlement.",
+      "diffs": [
+        {
+          "f": "Sale availability",
+          "o": "Available on all channels",
+          "n": "Withdrawn from sale",
+          "mat": true
+        }
+      ],
+      "approvals": [
+        {
+          "role": "Product Owner",
+          "who": "Andrew Akoh",
+          "state": "Approved",
+          "ts": "2026-08-17 10:20"
+        },
+        {
+          "role": "Customer Experience",
+          "who": "Bolutito Ayodeji",
+          "state": "Approved",
+          "ts": "2026-08-17 12:05"
+        },
+        {
+          "role": "Business Assurance",
+          "who": "Mercy Andrew",
+          "state": "Approved",
+          "ts": "2026-08-17 14:30"
+        }
+      ],
+      "gates": [
+        [
+          "G1",
+          "Automated validation",
+          "pass",
+          "All rules passed"
+        ],
+        [
+          "G2",
+          "Risk classification",
+          "pass",
+          "Tier 3, confirmed"
+        ],
+        [
+          "G3",
+          "Regulatory applicability",
+          "pass",
+          "Not applicable"
+        ],
+        [
+          "G4",
+          "Configuration lock",
+          "pass",
+          "Locked"
+        ],
+        [
+          "G5",
+          "Segregation of duties",
+          "pass",
+          "No conflict"
+        ],
+        [
+          "G6",
+          "Complete approval",
+          "pass",
+          "3 of 3 complete"
+        ],
+        [
+          "G7",
+          "Test evidence",
+          "pass",
+          "Channel withdrawal verified"
+        ],
+        [
+          "G8",
+          "Rollback readiness",
+          "pass",
+          "Restore to sale, 8 min"
+        ],
+        [
+          "G9",
+          "Synchronised effective dates",
+          "active",
+          "Awaiting scheduling"
+        ],
+        [
+          "G10",
+          "Full acknowledgement",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G11",
+          "Reconciliation",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G12",
+          "Monitoring closure",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G13",
+          "Evidence immutability",
+          "wait",
+          "Applies on closure"
+        ]
+      ]
+    },
+    {
+      "id": "REQ-2026-0421",
+      "type": "Clone",
+      "typeKey": "clone",
+      "target": "Daily Data 2GB",
+      "title": "Clone of Daily Data 1.5GB",
+      "owner": "Uche Chiemejonam",
+      "status": "Draft",
+      "tier": null,
+      "ver": "draft",
+      "submitted": "—",
+      "sla": "—",
+      "slaBad": false,
+      "summary": "Cloned from certified template TPL-022 Commercial Data Bundle v7.",
+      "diffs": [],
+      "approvals": [],
+      "gates": [
+        [
+          "G1",
+          "Automated validation",
+          "wait",
+          "Runs on preview or submit"
+        ],
+        [
+          "G2",
+          "Risk classification",
+          "wait",
+          "Proposed on submission"
+        ],
+        [
+          "G3",
+          "Regulatory applicability",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G4",
+          "Configuration lock",
+          "wait",
+          "Applies on submission"
+        ],
+        [
+          "G5",
+          "Segregation of duties",
+          "wait",
+          "Checked on submission"
+        ],
+        [
+          "G6",
+          "Complete approval",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G7",
+          "Test evidence",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G8",
+          "Rollback readiness",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G9",
+          "Synchronised effective dates",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G10",
+          "Full acknowledgement",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G11",
+          "Reconciliation",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G12",
+          "Monitoring closure",
+          "wait",
+          "Not started"
+        ],
+        [
+          "G13",
+          "Evidence immutability",
+          "wait",
+          "Applies on closure"
+        ]
+      ]
+    },
+    {
+      "id": "REQ-2026-0405",
+      "type": "Retire",
+      "typeKey": "retire",
+      "target": "PRD-5002 Recharge Bonus 200%",
+      "title": "Staged retirement, Recharge Bonus 200%",
+      "owner": "Tunde Elesho",
+      "status": "Retiring",
+      "tier": 3,
+      "ver": "v3.1",
+      "submitted": "2026-08-05 09:00",
+      "sla": "Within SLA",
+      "slaBad": false,
+      "summary": "Withdraw the 200% recharge bonus. 1.1m subscribers migrate to the standard recharge reward.",
+      "diffs": [],
+      "approvals": [
+        {
+          "role": "Product Owner",
+          "who": "Tunde Elesho",
+          "state": "Approved",
+          "ts": "2026-08-05 11:00"
+        },
+        {
+          "role": "Finance",
+          "who": "Stanley Ezihe",
+          "state": "Approved",
+          "ts": "2026-08-06 10:15"
+        },
+        {
+          "role": "Customer Experience",
+          "who": "Bolutito Ayodeji",
+          "state": "Approved",
+          "ts": "2026-08-06 14:00"
+        },
+        {
+          "role": "Legal / Regulatory",
+          "who": "Chike Opara",
+          "state": "Approved",
+          "ts": "2026-08-07 09:40"
+        }
+      ],
+      "gates": [
+        [
+          "G1",
+          "Automated validation",
+          "pass",
+          "All rules passed"
+        ],
+        [
+          "G2",
+          "Risk classification",
+          "pass",
+          "Tier 3"
+        ],
+        [
+          "G3",
+          "Regulatory applicability",
+          "pass",
+          "Customer notice required, issued"
+        ],
+        [
+          "G4",
+          "Configuration lock",
+          "pass",
+          "Locked"
+        ],
+        [
+          "G5",
+          "Segregation of duties",
+          "pass",
+          "No conflict"
+        ],
+        [
+          "G6",
+          "Complete approval",
+          "pass",
+          "4 of 4 complete"
+        ],
+        [
+          "G7",
+          "Test evidence",
+          "pass",
+          "Migration path verified"
+        ],
+        [
+          "G8",
+          "Rollback readiness",
+          "pass",
+          "Reinstate offer, 15 min"
+        ],
+        [
+          "G9",
+          "Synchronised effective dates",
+          "pass",
+          "Staged plan approved"
+        ],
+        [
+          "G10",
+          "Full acknowledgement",
+          "active",
+          "Sale-stop and renewal-stop acknowledged"
+        ],
+        [
+          "G11",
+          "Reconciliation",
+          "wait",
+          "Post-retirement, after migration"
+        ],
+        [
+          "G12",
+          "Monitoring closure",
+          "wait",
+          "Residual traffic under watch"
+        ],
+        [
+          "G13",
+          "Evidence immutability",
+          "wait",
+          "Applies on closure"
+        ]
+      ]
+    },
+    {
+      "id": "REQ-2026-0392",
+      "type": "Modify",
+      "typeKey": "modify",
+      "target": "PRD-2244 Weekly Data 6GB",
+      "title": "Benefit uplift, Weekly Data 6GB",
+      "owner": "Uche Chiemejonam",
+      "status": "Monitoring",
+      "tier": 2,
+      "ver": "v6.0",
+      "submitted": "2026-08-14 10:20",
+      "sla": "Within SLA",
+      "slaBad": false,
+      "summary": "Increase the weekly allowance from 5GB to 6GB at the same price point.",
+      "diffs": [
+        {
+          "f": "Benefit quantity",
+          "o": "5GB",
+          "n": "6GB",
+          "mat": true
+        }
+      ],
+      "approvals": [
+        {
+          "role": "Product Owner",
+          "who": "Uche Chiemejonam",
+          "state": "Approved",
+          "ts": "2026-08-14 11:00"
+        },
+        {
+          "role": "Pricing / MKT BI",
+          "who": "Lucky Christopher",
+          "state": "Approved",
+          "ts": "2026-08-14 15:30"
+        },
+        {
+          "role": "Technology",
+          "who": "Nisarg Shukla",
+          "state": "Approved",
+          "ts": "2026-08-15 09:10"
+        }
+      ],
+      "gates": [
+        [
+          "G1",
+          "Automated validation",
+          "pass",
+          "All rules passed"
+        ],
+        [
+          "G2",
+          "Risk classification",
+          "pass",
+          "Tier 2"
+        ],
+        [
+          "G3",
+          "Regulatory applicability",
+          "pass",
+          "Not applicable"
+        ],
+        [
+          "G4",
+          "Configuration lock",
+          "pass",
+          "Locked"
+        ],
+        [
+          "G5",
+          "Segregation of duties",
+          "pass",
+          "No conflict"
+        ],
+        [
+          "G6",
+          "Complete approval",
+          "pass",
+          "3 of 3 complete"
+        ],
+        [
+          "G7",
+          "Test evidence",
+          "pass",
+          "Accepted"
+        ],
+        [
+          "G8",
+          "Rollback readiness",
+          "pass",
+          "Automated, 6 min"
+        ],
+        [
+          "G9",
+          "Synchronised effective dates",
+          "pass",
+          "19 Aug 00:00"
+        ],
+        [
+          "G10",
+          "Full acknowledgement",
+          "pass",
+          "7 of 7 systems"
+        ],
+        [
+          "G11",
+          "Reconciliation",
+          "pass",
+          "Clean"
+        ],
+        [
+          "G12",
+          "Monitoring closure",
+          "active",
+          "36h of 72h elapsed"
+        ],
+        [
+          "G13",
+          "Evidence immutability",
+          "wait",
+          "Applies on closure"
+        ]
+      ]
+    }
+  ],
+  "exceptions": [
+    {
+      "id": "EXC-0091",
+      "title": "Reconciliation mismatch, wallet priority",
+      "src": "REQ-2026-0399",
+      "sev": "Critical",
+      "state": "Open",
+      "owner": "Mercy Andrew",
+      "raised": "2026-08-22 06:10",
+      "sla": "Resolution ≤ 8h",
+      "detail": "CRM holds wallet priority as 'Main wallet first' while the approved version specifies 'Promotional wallet first'. Closure is blocked and rollback assessment is open."
+    },
+    {
+      "id": "EXC-0090",
+      "title": "CRM did not acknowledge deployment",
+      "src": "REQ-2026-0399",
+      "sev": "Critical",
+      "state": "Investigating",
+      "owner": "Nisarg Shukla",
+      "raised": "2026-08-22 05:44",
+      "sla": "Retry ≤ 1h",
+      "detail": "CRM returned a timeout during the deployment window. Six of seven target systems acknowledged."
+    },
+    {
+      "id": "EXC-0088",
+      "title": "Population validation failure",
+      "src": "REQ-2026-0424",
+      "sev": "High",
+      "state": "Open",
+      "owner": "Stanley Ezihe",
+      "raised": "2026-08-21 08:20",
+      "sla": "Correction before resubmission",
+      "detail": "11 of 148 records in the bulk population are retired products and were excluded by validation."
+    },
+    {
+      "id": "EXC-0084",
+      "title": "Residual risk accepted, boundary scenario",
+      "src": "REQ-2026-0418",
+      "sev": "Medium",
+      "state": "Accepted",
+      "owner": "Mercy Andrew",
+      "raised": "2026-08-20 16:30",
+      "sla": "Review by 2026-09-20",
+      "detail": "One boundary scenario deferred to the next release. Accepted with a documented remedial action and expiry date."
+    },
+    {
+      "id": "EXC-0079",
+      "title": "Revenue variance above threshold",
+      "src": "PRD-2290",
+      "sev": "Critical",
+      "state": "Open",
+      "owner": "Lucky Christopher",
+      "raised": "2026-08-22 09:02",
+      "sla": "Escalation ≤ 1h",
+      "detail": "Actual ARPU is 4.2% below the expected value for the deployed version, exceeding the monitoring threshold."
+    }
+  ],
+  "deployTargets": [
+    {
+      "sys": "Product Catalogue",
+      "state": "Acknowledged",
+      "ts": "2026-08-22 00:01",
+      "resp": "200 OK"
+    },
+    {
+      "sys": "Charging System",
+      "state": "Acknowledged",
+      "ts": "2026-08-22 00:02",
+      "resp": "200 OK"
+    },
+    {
+      "sys": "Billing",
+      "state": "Acknowledged",
+      "ts": "2026-08-22 00:02",
+      "resp": "200 OK"
+    },
+    {
+      "sys": "Provisioning (MSAP)",
+      "state": "Acknowledged",
+      "ts": "2026-08-22 00:03",
+      "resp": "200 OK"
+    },
+    {
+      "sys": "CIS",
+      "state": "Acknowledged",
+      "ts": "2026-08-22 00:03",
+      "resp": "200 OK"
+    },
+    {
+      "sys": "CRM",
+      "state": "Failed",
+      "ts": "2026-08-22 00:05",
+      "resp": "504 Gateway timeout"
+    },
+    {
+      "sys": "Notification Gateway",
+      "state": "Acknowledged",
+      "ts": "2026-08-22 00:04",
+      "resp": "200 OK"
+    }
+  ],
+  "tests": [
+    {
+      "id": "TC-118",
+      "scen": "Price applied at purchase, standard channel",
+      "exp": "₦8,750 charged",
+      "act": "₦8,750 charged",
+      "res": "Pass"
+    },
+    {
+      "id": "TC-119",
+      "scen": "Price applied at purchase, USSD",
+      "exp": "₦8,750 charged",
+      "act": "₦8,750 charged",
+      "res": "Pass"
+    },
+    {
+      "id": "TC-120",
+      "scen": "Discount ceiling boundary at 7.5%",
+      "exp": "Accepted",
+      "act": "Accepted",
+      "res": "Pass"
+    },
+    {
+      "id": "TC-121",
+      "scen": "Discount above ceiling at 7.6%",
+      "exp": "Rejected",
+      "act": "Rejected",
+      "res": "Pass"
+    },
+    {
+      "id": "TC-122",
+      "scen": "Benefit provisioning, 25GB allocated",
+      "exp": "25GB",
+      "act": "25GB",
+      "res": "Pass"
+    },
+    {
+      "id": "TC-123",
+      "scen": "Rollover interaction with bonus wallet",
+      "exp": "Bonus consumed first",
+      "act": "Main consumed first",
+      "res": "Fail"
+    },
+    {
+      "id": "TC-124",
+      "scen": "Eligibility, postpaid customer excluded",
+      "exp": "Excluded",
+      "act": "Excluded",
+      "res": "Pass"
+    },
+    {
+      "id": "TC-125",
+      "scen": "Effective date boundary, 23:59 prior day",
+      "exp": "Old price",
+      "act": "Not executed",
+      "res": "Not run"
+    }
+  ],
+  "templates": [
+    {
+      "id": "TPL-018",
+      "name": "Prepaid Tariff Plan",
+      "ver": "v4",
+      "state": "Certified",
+      "owner": "Chioma Agballah",
+      "certified": "2026-02-14",
+      "recert": "2026-08-31",
+      "scope": "Tariff Plans, Prepaid",
+      "fields": "64",
+      "domain": "Marketing",
+      "family": "Voice",
+      "category": "Tariff Plans",
+      "subcategory": "Prepaid",
+      "config": {
+        "division": "Marketing",
+        "productFamily": "Voice",
+        "cat": "Tariff Plans",
+        "subcategory": "Prepaid",
+        "template": "TPL-018",
+        "templateName": "Prepaid Tariff Plan"
+      },
+      "treatments": {
+        "Division": "Inherited",
+        "Category": "Inherited",
+        "Subcategory": "Inherited"
+      }
+    },
+    {
+      "id": "TPL-022",
+      "name": "Commercial Data Bundle",
+      "ver": "v7",
+      "state": "Certified",
+      "owner": "Uche Chiemejonam",
+      "certified": "2026-06-01",
+      "recert": "2026-12-01",
+      "scope": "Data Bundles, Commercial",
+      "fields": "51",
+      "domain": "Marketing",
+      "family": "Data",
+      "category": "Data Bundles",
+      "subcategory": "Commercial Plans",
+      "config": {
+        "division": "Marketing",
+        "productFamily": "Data",
+        "cat": "Data Bundles",
+        "subcategory": "Commercial Plans",
+        "template": "TPL-022",
+        "templateName": "Commercial Data Bundle",
+        "dataProductType": "Standard Data Bundle"
+      },
+      "treatments": {
+        "Division": "Inherited",
+        "Category": "Inherited",
+        "Subcategory": "Inherited"
+      }
+    },
+    {
+      "id": "TPL-024",
+      "name": "Enterprise Plan Base",
+      "ver": "v1",
+      "state": "Certified",
+      "owner": "Enterprise Products",
+      "certified": "2026-08-20",
+      "recert": "2027-02-20",
+      "scope": "Tariff Plans, Enterprise Plans",
+      "fields": "96",
+      "category": "Tariff Plans",
+      "subcategory": "Enterprise Plans",
+      "domain": "Enterprise Business",
+      "family": "Enterprise Mobile",
+      "config": {
+        "division": "Enterprise Business",
+        "productFamily": "Enterprise Mobile",
+        "cat": "Tariff Plans",
+        "subcategory": "Enterprise Plans",
+        "template": "TPL-024",
+        "templateName": "Enterprise Plan Base",
+        "enterprisePlanType": "Standard Enterprise Mobile Tariff"
+      },
+      "treatments": {
+        "Division": "Inherited",
+        "Category": "Inherited",
+        "Subcategory": "Inherited"
+      }
+    },
+    {
+      "id": "TPL-025",
+      "name": "EB Data & IoT Base",
+      "ver": "v1",
+      "state": "Certified",
+      "owner": "Enterprise Data & IoT",
+      "certified": "2026-09-01",
+      "recert": "2027-03-01",
+      "scope": "Data Bundles, Business Plans",
+      "fields": "72",
+      "category": "Data Bundles",
+      "subcategory": "Business Plans",
+      "domain": "Enterprise Business",
+      "family": "Data & IoT",
+      "config": {
+        "division": "Enterprise Business",
+        "productFamily": "Data & IoT",
+        "cat": "Data Bundles",
+        "subcategory": "Business Plans",
+        "template": "TPL-025",
+        "templateName": "EB Data & IoT Base",
+        "dataProductType": "Postpaid Data Bundle"
+      },
+      "treatments": {
+        "Division": "Inherited",
+        "Category": "Inherited",
+        "Subcategory": "Inherited"
+      }
+    },
+    {
+      "id": "TPL-027",
+      "name": "Loan Product",
+      "ver": "v3",
+      "state": "Certified",
+      "owner": "Wasiu Isiaka",
+      "certified": "2026-04-09",
+      "recert": "2026-10-09",
+      "scope": "Loan Services",
+      "fields": "47",
+      "domain": "Marketing",
+      "family": "Loans",
+      "category": "Loan Services",
+      "subcategory": "Loan Products",
+      "config": {
+        "division": "Marketing",
+        "productFamily": "Loans",
+        "cat": "Loan Services",
+        "subcategory": "Loan Products",
+        "template": "TPL-027",
+        "templateName": "Loan Product"
+      },
+      "treatments": {
+        "Division": "Inherited",
+        "Category": "Inherited",
+        "Subcategory": "Inherited"
+      }
+    },
+    {
+      "id": "TPL-031",
+      "name": "Roaming Bundle",
+      "ver": "v2",
+      "state": "Pending Certification",
+      "owner": "Chike Opara",
+      "certified": "—",
+      "recert": "—",
+      "scope": "Roaming Bundles",
+      "fields": "58",
+      "submitted": "2026-08-19 10:20",
+      "certificationStatus": "Pending Certification",
+      "certificationApprover": "—",
+      "certificationComment": "",
+      "notes": "New template to support the Zone B roaming launch. Wallet and charging fields inherited from TPL-022; pricing and eligibility left editable.",
+      "domain": "Marketing",
+      "family": "Roaming",
+      "category": "Roaming Bundles",
+      "subcategory": "Roaming Bundles"
+    },
+    {
+      "id": "TPL-009",
+      "name": "Legacy Offer Pattern",
+      "ver": "v1",
+      "state": "Withdrawn",
+      "owner": "Unassigned",
+      "certified": "2021-03-02",
+      "recert": "Expired",
+      "scope": "Offers",
+      "fields": "33"
+    }
+  ],
+  "notifications": [
+    {
+      "id": "NTF-101",
+      "title": "Reconciliation mismatch",
+      "body": "REQ-2026-0399: CRM wallet priority does not match the approved version.",
+      "ts": "2026-08-22 06:10",
+      "route": "recon",
+      "read": false,
+      "type": "Reconciliation"
+    },
+    {
+      "id": "NTF-100",
+      "title": "Deployment target failed",
+      "body": "REQ-2026-0399: CRM returned 504 Gateway timeout during deployment.",
+      "ts": "2026-08-22 00:05",
+      "route": "testing",
+      "sub": null,
+      "read": false,
+      "type": "Deployment"
+    },
+    {
+      "id": "NTF-099",
+      "title": "Revenue threshold breached",
+      "body": "PRD-2290: revenue variance is 4.2% against a 2.0% threshold.",
+      "ts": "2026-08-22 09:02",
+      "route": "recon",
+      "sub": "monitor",
+      "read": false,
+      "type": "Reconciliation"
+    },
+    {
+      "id": "NTF-098",
+      "title": "Request returned for correction",
+      "body": "REQ-2026-0424: Finance returned the bulk VAT change. 11 retired products in the population.",
+      "ts": "2026-08-21 08:20",
+      "route": "requests",
+      "sub": "REQ-2026-0424",
+      "read": false,
+      "type": "Approvals"
+    },
+    {
+      "id": "NTF-097",
+      "title": "Approval SLA breached",
+      "body": "REQ-2026-0412: Business Assurance approval is 6 hours over SLA.",
+      "ts": "2026-08-21 15:14",
+      "route": "workflow",
+      "sub": "REQ-2026-0412",
+      "read": true,
+      "type": "Approvals"
+    },
+    {
+      "id": "NTF-096",
+      "title": "Template submitted for certification",
+      "body": "TPL-031 Roaming Bundle was submitted by Chike Opara.",
+      "ts": "2026-08-19 10:20",
+      "route": "workflow",
+      "sub": null,
+      "read": true,
+      "type": "Templates"
+    },
+    {
+      "id": "NTF-095",
+      "title": "Test evidence failed",
+      "body": "REQ-2026-0399: TC-123 failed. Wallet depletion order does not match the approved specification.",
+      "ts": "2026-08-19 14:02",
+      "route": "testing",
+      "read": true,
+      "type": "Testing"
+    },
+    {
+      "id": "NTF-094",
+      "title": "Approval recorded",
+      "body": "REQ-2026-0418: Technology approved the new Youth Weekly Data 4GB product.",
+      "ts": "2026-08-20 10:02",
+      "route": "requests",
+      "sub": "REQ-2026-0418",
+      "read": true,
+      "type": "Approvals"
+    },
+    {
+      "id": "NTF-093",
+      "title": "Material field changed",
+      "body": "REQ-2026-0388 v11.3: discount ceiling changed after submission. Affected approvals were invalidated.",
+      "ts": "2026-06-01 09:40",
+      "route": "catalogue",
+      "sub": "PRD-2290",
+      "read": true,
+      "type": "Approvals"
+    },
+    {
+      "id": "NTF-092",
+      "title": "Rollback activated",
+      "body": "REQ-2026-0361: rollback restored version v10.2 after a revenue variance breach.",
+      "ts": "2026-05-14 11:05",
+      "route": "exceptions",
+      "sub": "rollback",
+      "read": true,
+      "type": "Deployment"
+    }
+  ],
+  "users": [
+    {
+      "name": "Uche Chiemejonam",
+      "role": "Product Owner",
+      "access": "Standard",
+      "recert": "2026-11-02",
+      "state": "Active",
+      "roles": [
+        "Product Owner"
+      ],
+      "domains": [
+        "Marketing"
+      ],
+      "accessStatus": "Active"
+    },
+    {
+      "name": "Mercy Andrew",
+      "role": "Business Assurance",
+      "access": "Standard",
+      "recert": "2026-10-18",
+      "state": "Active",
+      "roles": [
+        "Business Assurance"
+      ],
+      "domains": [
+        "All"
+      ],
+      "accessStatus": "Active"
+    },
+    {
+      "name": "Ifeoma Okeke",
+      "role": "Test Analyst",
+      "access": "Standard",
+      "recert": "2026-12-15",
+      "state": "Active",
+      "roles": [
+        "Test Analyst"
+      ],
+      "domains": [
+        "All"
+      ],
+      "accessStatus": "Active"
+    },
+    {
+      "name": "Nisarg Shukla",
+      "role": "Technology Approver",
+      "access": "Standard",
+      "recert": "2026-12-01",
+      "state": "Active",
+      "roles": [
+        "Technology Approver"
+      ],
+      "domains": [
+        "All"
+      ],
+      "accessStatus": "Active"
+    },
+    {
+      "name": "Lucky Christopher",
+      "role": "Pricing / MKT BI",
+      "access": "Standard",
+      "recert": "2026-09-30",
+      "state": "Active",
+      "roles": [
+        "Pricing / MKT BI"
+      ],
+      "domains": [
+        "All"
+      ],
+      "accessStatus": "Active"
+    },
+    {
+      "name": "Mutolib Ottan",
+      "role": "Platform Administrator",
+      "access": "Privileged",
+      "recert": "2026-09-05",
+      "state": "Active",
+      "roles": [
+        "Platform Administrator",
+        "Product Manager",
+        "Product Owner",
+        "Pricing / MKT BI",
+        "Finance / Tax",
+        "Business Assurance",
+        "Customer Experience",
+        "Technology Approver",
+        "Regulatory / Legal",
+        "Executive Sponsor",
+        "CAB / Change Manager",
+        "Test Analyst",
+        "Release Manager",
+        "Reconciliation & Monitoring Analyst",
+        "Exception & Rollback Manager",
+        "Product Governance",
+        "Audit & Compliance Reviewer",
+        "Product Classification Administrator"
+      ],
+      "domains": [
+        "All"
+      ],
+      "accessStatus": "Active"
+    },
+    {
+      "name": "Bolutito Ayodeji",
+      "role": "Customer Experience",
+      "access": "Standard",
+      "recert": "2026-11-20",
+      "state": "Active",
+      "roles": [
+        "Customer Experience"
+      ],
+      "domains": [
+        "All"
+      ],
+      "accessStatus": "Active"
+    },
+    {
+      "name": "Former Contractor",
+      "role": "Product Owner",
+      "access": "Standard",
+      "recert": "Overdue",
+      "state": "Leaver, pending removal",
+      "roles": [
+        "Product Owner"
+      ],
+      "domains": [
+        "Marketing"
+      ],
+      "accessStatus": "Leaver"
+    },
+    {
+      "id": "USR-DEMO-CHIAMAKA",
+      "name": "Chiamaka Eleodi",
+      "email": "chiamaka.eleodi@mtn.com",
+      "employeeId": "DEMO-CHIAMAKA",
+      "title": "Product Manager",
+      "department": "Product & Commercial",
+      "manager": "",
+      "role": "Product Manager",
+      "roles": [
+        "Product Manager"
+      ],
+      "domains": [
+        "All"
+      ],
+      "access": "Standard",
+      "accessStatus": "Active",
+      "state": "Active",
+      "recert": "2027-03-31",
+      "recertDate": "2027-03-31",
+      "fieldOverrides": {
+        "Pricing": "Inherit",
+        "Taxation": "Inherit",
+        "Regulatory": "Inherit",
+        "Eligibility": "Inherit",
+        "Fulfilment": "Inherit",
+        "Charging": "Inherit"
+      }
+    }
+  ],
+  "baseline": [
+    {
+      "id": "bg1",
+      "name": "Approved price band, commercial data",
+      "value": "₦100 to ₦25,000",
+      "applies": "Data Bundles, Commercial",
+      "kind": "priceBand",
+      "min": 100,
+      "max": 25000,
+      "unit": "NGN"
+    },
+    {
+      "id": "bg-price-tariff",
+      "name": "Approved price band, tariff plans",
+      "value": "Not configured",
+      "applies": "Tariff Plans",
+      "kind": "priceBand",
+      "min": null,
+      "max": null,
+      "unit": "NGN per applicable unit"
+    },
+    {
+      "id": "bg2",
+      "name": "Maximum discount",
+      "value": "15%",
+      "applies": "All categories"
+    },
+    {
+      "id": "bg3",
+      "name": "Permitted validity periods",
+      "value": "1, 7, 30, 90, 180, 365 days",
+      "applies": "Data Bundles"
+    },
+    {
+      "id": "bg4",
+      "name": "Supported wallet types",
+      "value": "Main, bonus, promotional, rollover",
+      "applies": "All categories"
+    },
+    {
+      "id": "bg5",
+      "name": "Tax treatment",
+      "value": "VAT at 7.5%",
+      "applies": "All categories"
+    }
+  ],
+  "baselineVersion": "2026.08",
+  "baselinePublished": "01 August 2026",
+  "guardrailRules": [
+    {
+      "id": "wr1",
+      "name": "Tier 3 approval SLA",
+      "value": "48 hours per approver",
+      "changed": "2026-06-14",
+      "by": "Mercy Andrew"
+    },
+    {
+      "id": "wr2",
+      "name": "Tier 4 approval SLA",
+      "value": "24 hours per approver",
+      "changed": "2026-06-14",
+      "by": "Mercy Andrew"
+    },
+    {
+      "id": "wr3",
+      "name": "Monitoring window, Tier 3",
+      "value": "72 hours",
+      "changed": "2026-05-02",
+      "by": "Andrew Akoh"
+    },
+    {
+      "id": "wr4",
+      "name": "Retirement inactivity trigger",
+      "value": "36 months",
+      "changed": "2026-03-11",
+      "by": "Andrew Akoh"
+    },
+    {
+      "id": "wr5",
+      "name": "Revenue variance threshold",
+      "value": "± 2.0%",
+      "changed": "2026-07-20",
+      "by": "Lucky Christopher"
+    }
+  ],
+  "integrations": [
+    {
+      "id": "int1",
+      "sys": "Product Catalogue",
+      "purpose": "Source of truth",
+      "auth": "mTLS",
+      "retry": "3 attempts, exponential",
+      "timeout": "10s",
+      "health": "Active"
+    },
+    {
+      "id": "int2",
+      "sys": "Charging System",
+      "purpose": "Pricing updates",
+      "auth": "OAuth 2.0",
+      "retry": "3 attempts, exponential",
+      "timeout": "15s",
+      "health": "Active"
+    },
+    {
+      "id": "int3",
+      "sys": "Billing",
+      "purpose": "Invoicing and reconciliation",
+      "auth": "mTLS",
+      "retry": "3 attempts, exponential",
+      "timeout": "15s",
+      "health": "Active"
+    },
+    {
+      "id": "int4",
+      "sys": "Provisioning (MSAP)",
+      "purpose": "Network activation",
+      "auth": "API key",
+      "retry": "5 attempts, fixed interval",
+      "timeout": "20s",
+      "health": "Active"
+    },
+    {
+      "id": "int5",
+      "sys": "CIS",
+      "purpose": "Customer and subscriber records",
+      "auth": "OAuth 2.0",
+      "retry": "3 attempts, exponential",
+      "timeout": "10s",
+      "health": "Active"
+    },
+    {
+      "id": "int6",
+      "sys": "CRM",
+      "purpose": "Customer journey and channel state",
+      "auth": "OAuth 2.0",
+      "retry": "3 attempts, exponential",
+      "timeout": "10s",
+      "health": "Critical"
+    },
+    {
+      "id": "int7",
+      "sys": "Notification Gateway",
+      "purpose": "Customer communications",
+      "auth": "API key",
+      "retry": "5 attempts, fixed interval",
+      "timeout": "8s",
+      "health": "Active"
+    },
+    {
+      "id": "int8",
+      "sys": "Reporting Platform",
+      "purpose": "Analytics and dashboards",
+      "auth": "OAuth 2.0",
+      "retry": "1 attempt, no retry",
+      "timeout": "30s",
+      "health": "Active"
+    }
+  ],
+  "audit": [
+    {
+      "ts": "2026-08-22 09:02",
+      "who": "System",
+      "role": "Monitoring",
+      "act": "Threshold breach recorded",
+      "obj": "PRD-2290 v11.3",
+      "kind": "bad",
+      "type": "Monitoring",
+      "det": "Revenue variance 4.2% below expected. Exception EXC-0079 raised."
+    },
+    {
+      "ts": "2026-08-22 06:10",
+      "who": "System",
+      "role": "Reconciliation",
+      "act": "Mismatch detected",
+      "obj": "REQ-2026-0399",
+      "kind": "bad",
+      "type": "Reconciliation",
+      "det": "CRM wallet priority does not match approved version. Closure blocked."
+    },
+    {
+      "ts": "2026-08-22 00:05",
+      "who": "System",
+      "role": "Deployment",
+      "act": "Target system failed",
+      "obj": "REQ-2026-0399",
+      "kind": "bad",
+      "type": "Deployment",
+      "det": "CRM returned 504 Gateway timeout."
+    },
+    {
+      "ts": "2026-08-21 16:11",
+      "who": "Nisarg Shukla",
+      "role": "Technology",
+      "act": "Approval recorded",
+      "obj": "REQ-2026-0412 v11.4",
+      "kind": "ok",
+      "type": "Approval",
+      "det": "Approved. Comment: integration impact confirmed as none."
+    },
+    {
+      "ts": "2026-08-21 14:40",
+      "who": "Lucky Christopher",
+      "role": "Pricing / MKT BI",
+      "act": "Approval recorded",
+      "obj": "REQ-2026-0412 v11.4",
+      "kind": "ok",
+      "type": "Approval",
+      "det": "Approved. Within commercial authority band."
+    },
+    {
+      "ts": "2026-08-21 09:14",
+      "who": "Uche Chiemejonam",
+      "role": "Product Owner",
+      "act": "Request submitted, version locked",
+      "obj": "REQ-2026-0412 v11.4",
+      "kind": "now",
+      "type": "Submission",
+      "det": "Risk tier 3 confirmed. Approval route generated with 5 mandatory approvers."
+    },
+    {
+      "ts": "2026-08-21 08:20",
+      "who": "Lucky Christopher",
+      "role": "Finance",
+      "act": "Returned for correction",
+      "obj": "REQ-2026-0424 v1.0",
+      "kind": "warnd",
+      "type": "Approval",
+      "det": "Population includes 11 retired products. Re-scope and resubmit."
+    },
+    {
+      "ts": "2026-08-20 16:30",
+      "who": "Mercy Andrew",
+      "role": "Business Assurance",
+      "act": "Residual risk accepted",
+      "obj": "REQ-2026-0418",
+      "kind": "warnd",
+      "type": "Exception",
+      "det": "One boundary scenario deferred. Expiry 2026-09-20."
+    },
+    {
+      "ts": "2026-08-19 08:45",
+      "who": "Tunde Elesho",
+      "role": "Product Owner",
+      "act": "Request submitted, version locked",
+      "obj": "REQ-2026-0418 v1.0",
+      "kind": "ok",
+      "type": "Submission",
+      "det": "Cloned from TPL-022 v7. Lineage recorded."
+    }
+  ]
+}
