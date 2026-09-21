@@ -1,4 +1,4 @@
-import asyncio, json, pathlib, sqlite3
+import asyncio, json, os, pathlib, sqlite3
 from playwright.async_api import async_playwright
 
 ROOT=pathlib.Path(__file__).resolve().parents[1]
@@ -16,7 +16,8 @@ def persisted_admin():
 async def main():
     admin,revision=persisted_admin()
     async with async_playwright() as p:
-        browser=await p.chromium.launch(headless=True,executable_path='/usr/bin/chromium',args=['--no-sandbox','--disable-dev-shm-usage'])
+        launch={'headless':True,'channel':'msedge'} if os.name=='nt' else {'headless':True,'executable_path':'/usr/bin/chromium','args':['--no-sandbox','--disable-dev-shm-usage']}
+        browser=await p.chromium.launch(**launch)
         page=await browser.new_page(viewport={'width':1500,'height':1100})
         errors=[]
         page.on('pageerror',lambda e:errors.append(str(e)))
@@ -83,7 +84,16 @@ async def main():
         assert await page.locator('[data-v45-qty="youtubeNight"]').input_value()==''
         assert await page.locator('[data-v45-qty="youtubeDay"]').input_value()==''
         assert await page.locator('[data-f="dataOtherAddons"]').evaluate("el=>el.tagName")=='TEXTAREA'
-        assert await page.locator('[data-f="dataTransferability"]').evaluate("el=>[...el.options].map(o=>o.value)")==['Not allowed','Allowed','Conditional']
+        assert await page.locator('[data-f="dataTransferability"]').count()==0
+
+        # Purchase & Sharing is a product-level section for every product family.
+        await page.evaluate("state.wizard.section='purchaseSharing';render()")
+        assert await page.locator('[data-f="sharingAllowed"]').evaluate("el=>[...el.options].map(o=>o.value)")==['No','Yes']
+        assert await page.locator('[data-f="buyForOthersAllowed"]').evaluate("el=>[...el.options].map(o=>o.value)")==['No','Yes']
+        await page.select_option('[data-f="sharingAllowed"]','Yes')
+        await page.wait_for_timeout(30)
+        assert await page.locator('[data-f="shareablePercentage"]').get_attribute('max')=='100'
+        await page.evaluate("state.wizard.section='dataCore';render()")
 
         # Required markers in the core data form.
         labels=await page.locator('.config-main label').all_text_contents()

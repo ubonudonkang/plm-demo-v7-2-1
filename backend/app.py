@@ -247,12 +247,16 @@ def normalize_state(state: dict[str, Any], session: Session) -> None:
                 updated_at=datetime.now(timezone.utc),
             ))
 
-    # Rebuild searchable audit mirror.
-    session.execute(delete(AuditEvent))
+    # Project browser-originated audit rows into the append-only audit store.
+    # Never rebuild this table from client state: API-originated decisions and
+    # executions may not exist in the browser's compatibility audit branch.
+    existing_audit_keys = set(session.scalars(select(AuditEvent.event_key)).all())
     for idx, event in enumerate(state.get("audit", []) or []):
         if not isinstance(event, dict):
             continue
         key = str(event.get("id") or f"AUD-{idx+1:06d}")
+        if key in existing_audit_keys:
+            continue
         session.add(AuditEvent(
             event_key=key,
             event_type=event.get("event") or event.get("action") or event.get("type"),
@@ -261,6 +265,7 @@ def normalize_state(state: dict[str, Any], session: Session) -> None:
             environment=event.get("environment") or event.get("env"),
             raw_json=json.dumps(event, ensure_ascii=False),
         ))
+        existing_audit_keys.add(key)
 
 
 
@@ -875,6 +880,11 @@ class ApprovalDecisionPayload(BaseModel):
     decision: Literal["Approved", "Rejected", "Returned"]
     note: str | None = None
 
+
+class RequestWithdrawalPayload(BaseModel):
+    actor: str
+    reason: str
+
 class TestExecutionPayload(BaseModel):
     actor: str
     actual_result: str
@@ -1013,6 +1023,33 @@ def get_module(module_name: str):
             return {"module": module_name, "revision": 0, "data": {}}
         return {"module": module_name, "revision": row.revision, "data": json.loads(row.data_json or "{}")}
 
+
+def protect_controlled_request_updates(current: dict[str, Any], incoming: dict[str, Any]) -> None:
+    """Keep approval decisions out of the generic whole-module write path.
+
+    New requests and ordinary draft edits remain compatible with the demo's
+    module persistence bridge. Once a request is awaiting approval, its route
+    and decision state can only change through the approval-decisions command.
+    """
+    current_by_id = {
+        str(item.get("id")): item
+        for item in current.get("requests", []) or []
+        if isinstance(item, dict) and item.get("id")
+    }
+    controlled = ("status", "approvals", "tier", "ver", "submitted")
+    for proposed in incoming.get("requests", []) or []:
+        if not isinstance(proposed, dict) or not proposed.get("id"):
+            continue
+        existing = current_by_id.get(str(proposed.get("id")))
+        if not existing or existing.get("status") != "Pending Approval":
+            continue
+        if any(existing.get(key) != proposed.get(key) for key in controlled):
+            raise HTTPException(
+                409,
+                "Approval route and decision fields must be changed through "
+                "/api/v2/requests/{request_id}/approval-decisions",
+            )
+
 @app.put("/api/modules/{module_name}")
 def put_module(module_name: str, payload: ModulePayload):
     if module_name not in MODULE_BRANCHES:
@@ -1027,6 +1064,9 @@ def put_module(module_name: str, payload: ModulePayload):
         current_revision = row.revision if row else 0
         if payload.expected_revision is not None and payload.expected_revision != current_revision:
             raise HTTPException(409, detail={"message": "Module revision conflict", "current_revision": current_revision})
+        current_data = json.loads(row.data_json or "{}") if row else {}
+        if module_name == "requests":
+            protect_controlled_request_updates(current_data, payload.data)
         encoded = json.dumps(payload.data, ensure_ascii=False)
         if row:
             row.data_json = encoded
@@ -1138,7 +1178,10 @@ def v2_update(resource: str, item_id: str, payload: RecordPayload):
         found = False
         for i, item in enumerate(items):
             if isinstance(item, dict) and record_id(item, i) == item_id:
-                merged = dict(item); merged.update(payload.data); items[i] = merged; found = True; break
+                merged = dict(item); merged.update(payload.data)
+                if resource == "requests":
+                    protect_controlled_request_updates({"requests": [item]}, {"requests": [merged]})
+                items[i] = merged; found = True; break
         if not found:
             raise HTTPException(404, "Record not found")
         data[branch] = items
@@ -1154,6 +1197,11 @@ def v2_delete(resource: str, item_id: str, actor: str = "prototype-user"):
     with Session(engine) as session:
         row, data = load_module_data(session, module_name)
         items = list(data.get(branch, []) or [])
+        if resource == "requests":
+            existing = next((item for i, item in enumerate(items)
+                             if isinstance(item, dict) and record_id(item, i) == item_id), None)
+            if existing and existing.get("status") == "Pending Approval":
+                raise HTTPException(409, "A submitted request must be withdrawn through its lifecycle command")
         kept = [item for i, item in enumerate(items) if not (isinstance(item, dict) and record_id(item, i) == item_id)]
         if len(kept) == len(items):
             raise HTTPException(404, "Record not found")
@@ -1161,6 +1209,33 @@ def v2_delete(resource: str, item_id: str, actor: str = "prototype-user"):
         save_module_data(session, row, data, actor, f"{resource} deleted", item_id)
         session.commit()
         return {"ok": True, "revision": row.revision}
+
+
+@app.post("/api/v2/requests/{request_id}/withdrawal")
+def withdraw_request(request_id: str, payload: RequestWithdrawalPayload):
+    reason = payload.reason.strip()
+    if not reason:
+        raise HTTPException(422, "Withdrawal reason is required")
+    with Session(engine) as session:
+        row, data = load_module_data(session, "requests")
+        requests = list(data.get("requests", []) or [])
+        req = next((r for r in requests if isinstance(r, dict) and str(r.get("id")) == request_id), None)
+        if not req:
+            raise HTTPException(404, "Request not found")
+        if req.get("status") != "Pending Approval":
+            raise HTTPException(409, "Only a request awaiting approval can be withdrawn")
+        req["status"] = "Cancelled"
+        req["withdrawnAt"] = now_iso()
+        req["withdrawalReason"] = reason
+        req["slaBad"] = False
+        req["sla"] = "—"
+        for approval in req.get("approvals", []) or []:
+            if approval.get("state") in {"Pending", "Not Started", "Not started", "Queued"}:
+                approval["state"] = "Withdrawn"
+        data["requests"] = requests
+        save_module_data(session, row, data, payload.actor, "Submitted request withdrawn", request_id)
+        session.commit()
+        return {"request": req, "revision": row.revision}
 
 @app.post("/api/v2/requests/{request_id}/approval-decisions")
 def record_approval_decision(request_id: str, payload: ApprovalDecisionPayload):
@@ -1206,13 +1281,25 @@ def record_approval_decision(request_id: str, payload: ApprovalDecisionPayload):
             next_approval = prepare_sequence()
             if next_approval is None and approvals and all(a.get("state") == "Approved" for a in approvals):
                 req["status"] = "Approved"
+                req["slaBad"] = False
+                req["sla"] = "Ready for execution" if req.get("typeKey") in {"suspend", "retire"} else "Ready for testing"
+                for gate in req.get("gates", []) or []:
+                    if isinstance(gate, list) and len(gate) >= 4 and gate[1] == "Complete approval":
+                        gate[2] = "pass"
+                        gate[3] = f"{len(approvals)} of {len(approvals)} complete"
         elif payload.decision == "Rejected":
             req["status"] = "Rejected"
+            req["rejectionReason"] = payload.note or ""
+            req["slaBad"] = False
+            req["sla"] = "—"
             for approval in approvals:
                 if approval is not existing and approval.get("state") in {"Pending", "Not Started", "Not started"}:
                     approval["state"] = "Invalidated"
         elif payload.decision == "Returned":
             req["status"] = "Returned for Correction"
+            req["correctionNote"] = payload.note or ""
+            req["slaBad"] = False
+            req["sla"] = "Paused"
             for approval in approvals:
                 if approval is not existing and approval.get("state") in {"Pending", "Not Started", "Not started"}:
                     approval["state"] = "Invalidated"

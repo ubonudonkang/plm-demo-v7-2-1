@@ -2012,7 +2012,7 @@ function renderProductDetailTab(p, active){
     return `<div class="stack">
       ${detailSection("Enterprise profile","EB plan-family classification and commercial profile.",detailKV([["Enterprise Plan Type",f.enterprisePlanType],["Billing basis",f.billingBasis],["VAT treatment",f.vatTreatment],["Customer segment",f.enterpriseCustomerSegment],["Purpose",f.enterprisePurpose]]))}
       ${detailSection("Provisioning & activation","Activation model and customer/service provisioning.",detailKV([["Provisioning mode",f.provisioningMode],["Activation method",f.activationMethod],["Activation code",f.activationCode],["Deactivation method",f.deactivationMethod],["Deactivation code",f.deactivationCode],["IMEI / device trigger",f.imeiTrigger?"Yes":"No"]]))}
-      ${["mobile","cug","bundle","iot"].includes(group)?detailSection("Benefits & allowances","Enterprise wallet and allowance configuration.",detailKV([["Access fee",f.accessFee],["Voice wallet",f.voiceWallet],["Voice allowance type",f.voiceAllowanceType],["Included voice",f.voiceAllowance],["Voice rate",f.enterpriseVoiceRate],["SMS wallet",f.smsWallet],["Included SMS",f.smsAllowance],["SMS rate",f.enterpriseSmsRate],["Data allowance",f.dataAllowance],["International voice allowance",f.intlVoiceAllowance],["International SMS allowance",f.intlSmsAllowance],["Validity",f.allowanceValidity],["Recurring",f.recurringAllowed],["Parking",f.parkingAllowed],["Buy For Other",f.buyForOther],["Remarks / renewal rules",f.enterpriseRemarks]])):""}
+      ${["mobile","cug","bundle","iot"].includes(group)?detailSection("Benefits & allowances","Enterprise wallet and allowance configuration.",detailKV([["Access fee",f.accessFee],["Voice wallet",f.voiceWallet],["Voice allowance type",f.voiceAllowanceType],["Included voice",f.voiceAllowance],["Voice rate",f.enterpriseVoiceRate],["SMS wallet",f.smsWallet],["Included SMS",f.smsAllowance],["SMS rate",f.enterpriseSmsRate],["Data allowance",f.dataAllowance],["International voice allowance",f.intlVoiceAllowance],["International SMS allowance",f.intlSmsAllowance],["Validity",f.allowanceValidity],["Recurring",f.recurringAllowed],["Parking",f.parkingAllowed],["Remarks / renewal rules",f.enterpriseRemarks]])):""}
       ${group==="cug"?detailSection("CUG configuration","Closed-user-group identifiers and controls.",detailKV([["CUG ID / range",f.cugIdRange],["Eligible Service Classes",f.eligibleServiceClasses],["Additional PAM",f.additionalPam],["Deactivation PAM",f.deactivationPam],["UC Voice",f.ucVoice],["UT Voice",f.utVoice],["DA Voice",f.daVoice],["UC SMS",f.ucSms],["UT SMS",f.utSms],["DA SMS",f.daSms]])):""}
       ${group==="fixed"?detailSection("Fixed voice / access","Fixed voice, PRI, SIP and HPBX pricing.",detailKV([["Installation / setup fee",f.fixedInstallationFee],["Monthly access fee",f.fixedMonthlyAccessFee],["Concurrent sessions",f.concurrentSessions],["On-net local rate",f.fixedOnnetLocalRate],["On-net national peak",f.fixedOnnetNationalPeakRate],["On-net national off-peak",f.fixedOnnetNationalOffPeakRate],["Off-net fixed rate",f.fixedOffnetFixedRate],["MTN GSM rate",f.fixedMtnGsmRate],["Other GSM rate",f.fixedOtherGsmRate],["Direct Connect on-net",f.directConnectOnnetRate],["Direct Connect off-net",f.directConnectOffnetRate],["HPBX users",f.hpbxUsers],["SIP NRC",f.sipNrc],["SIP MRC",f.sipMrc]])):""}
       ${group==="messaging"?detailSection("Messaging / USSD","Commercial messaging and USSD pricing.",detailKV([["Message type",f.messageType],["Volume band",f.volumeBand],["Unit price",f.messagingUnitPrice],["Bind type",f.bindType],["SMS direction",f.smsDirection],["USSD seconds",f.ussdSeconds],["USSD validity",f.ussdValidity]])):""}
@@ -3550,7 +3550,6 @@ function enterpriseConfigSectionHTML(w,f,cur,active){
     ${ewField(w,f,cur,"allowanceValidity","Validity",{select:["Calendar Month","30 Days","7 Days","Daily","Same as purchase","Custom"]})}
     ${ewField(w,f,cur,"recurringAllowed","Recurring",{select:["Yes","No","Conditional"]})}
     ${ewField(w,f,cur,"parkingAllowed","Parking",{select:["Yes","No","Not applicable"]})}
-    ${ewField(w,f,cur,"buyForOther","Buy For Other",{select:["Yes","No","Not applicable"]})}
     ${ewField(w,f,cur,"enterpriseRemarks","Remarks / renewal rules",{full:true,placeholder:"e.g. Renewal at 03:00 hrs; proration charging."})}
   </div></div>`;
   if(active==="enterpriseCug") return `<div class="card config-main-card"><div class="card-head"><div><h3>CUG configuration</h3><p>CUG identifiers, access rules and dedicated charging fields from the CUG and CUG Reseller blocks.</p></div></div><div class="form">
@@ -5491,7 +5490,7 @@ document.addEventListener("click", e => {
           const orig = w.resubmitOf ? DATA.requests.find(x=>x.id===w.resubmitOf) : null;
           const ver = orig ? "v" + ((parseFloat((orig.ver||"v1.0").replace("v",""))||1)+0.1).toFixed(1) : "v1.0";
           const targetLabel = w.target||w.fields.source||w.fields.name||w.fields.population||"Defined population";
-          const route=approvalRouteForRequest(w,tier); DATA.requests.unshift({id,type:t.n,typeKey:w.type,target:targetLabel,title:t.n+", "+targetLabel,owner,status:"Pending Approval",tier,ver,submitted:nowStamp(),sla:"Within SLA",slaBad:false,summary:w.fields.just||t.d,diffs:[],approvals:route.map((role,index)=>({role,who:role,state:index===0?"Pending":"Not started",ts:"—"})),gates:requestGatesForType(w.type,tier,route.length),requestData:JSON.parse(JSON.stringify(w.fields))});
+          const route=approvalRouteForRequest(w,tier); DATA.requests.unshift({id,type:t.n,typeKey:w.type,target:targetLabel,title:t.n+", "+targetLabel,owner,status:"Pending Approval",tier,ver,submitted:nowStamp(),sla:"Within SLA",slaBad:false,summary:w.fields.just||t.d,diffs:buildRequestDiffs(w),approvals:route.map((role,index)=>({role,who:role,state:index===0?"Pending":"Not started",ts:"—"})),gates:requestGatesForType(w.type,tier,route.length),requestData:JSON.parse(JSON.stringify(w.fields))});
           appendAudit(owner,"Product Owner","Request submitted, version locked",id,"now","Submission", orig ? ("Corrected resubmission of "+orig.id+". Approval route generated.") : "Approval route generated.");
           if (orig){ orig.resubmittedAs = id; }
           state.wizard.step=5; state.wizard.submittedId=id; render(); toast(id+" submitted and visible in Workflow & Approvals.");
@@ -7712,7 +7711,7 @@ renderProductDetailTab=function(p,active){
   return `<div class="stack">
     ${detailSection("Enterprise profile","EB plan-family classification and commercial profile.",detailKV([["Enterprise Plan Type",f.enterprisePlanType],["Billing basis",f.billingBasis],["VAT treatment",f.vatTreatment],["Customer segment",f.enterpriseCustomerSegment],["Purpose",f.enterprisePurpose]]))}
     ${detailSection("Provisioning & activation","Activation model and customer/service provisioning.",detailKV([["Provisioning mode",f.provisioningMode],["Activation method",f.activationMethod],["Activation code",f.activationCode],["Deactivation method",f.deactivationMethod],["Deactivation code",f.deactivationCode],["IMEI / device trigger",f.imeiTrigger?"Yes":"No"]]))}
-    ${detailSection("Benefits & allowances","Commercial wallet, access-fee and allowance configuration.",detailKV([["Access fee",f.accessFee],["Voice wallet",f.voiceWallet],["Voice allowance type",f.voiceAllowanceType],["Included voice",f.voiceAllowance],["Voice rate",f.enterpriseVoiceRate],["SMS wallet",f.smsWallet],["Included SMS",f.smsAllowance],["SMS rate",f.enterpriseSmsRate],["Data allowance",f.dataAllowance],["International voice allowance",f.intlVoiceAllowance],["International SMS allowance",f.intlSmsAllowance],["Validity",f.allowanceValidity],["Recurring",f.recurringAllowed],["Parking",f.parkingAllowed],["Buy For Other",f.buyForOther]]))}
+    ${detailSection("Benefits & allowances","Commercial wallet, access-fee and allowance configuration.",detailKV([["Access fee",f.accessFee],["Voice wallet",f.voiceWallet],["Voice allowance type",f.voiceAllowanceType],["Included voice",f.voiceAllowance],["Voice rate",f.enterpriseVoiceRate],["SMS wallet",f.smsWallet],["Included SMS",f.smsAllowance],["SMS rate",f.enterpriseSmsRate],["Data allowance",f.dataAllowance],["International voice allowance",f.intlVoiceAllowance],["International SMS allowance",f.intlSmsAllowance],["Validity",f.allowanceValidity],["Recurring",f.recurringAllowed],["Parking",f.parkingAllowed]]))}
     ${detailSection("CUG configuration","Closed-user-group identifiers and controls.",detailKV([["CUG ID / range",f.cugIdRange],["Eligible Service Classes",f.eligibleServiceClasses],["Additional PAM",f.additionalPam],["Deactivation PAM",f.deactivationPam],["UC Voice",f.ucVoice],["UT Voice",f.utVoice],["DA Voice",f.daVoice],["UC SMS",f.ucSms],["UT SMS",f.utSms],["DA SMS",f.daSms]]))}
     ${detailSection("Technical mapping","Remaining downstream IDs not already shown in CUG Configuration.",detailKV([["CIS Product ID / PID",f.cisProductId],["HSDP PID",f.hsdpPid],["Offer ID",f.offerId],["Usage Offer ID",f.usageOfferId],["Wallet / DA identifier",f.walletDaId]]))}
   </div>`;
@@ -8890,11 +8889,13 @@ async function plmBackendBootstrap(){
     });
     v62EnsureTestRoleModel();
     (DATA.requests||[]).forEach(v7PrepareSequentialApprovals);
+    if(window.v46EnsurePurchaseSharingModel)window.v46EnsurePurchaseSharingModel();
     PLM_BACKEND.ready=true;PLM_BACKEND.status='Connected · module persistence';
   }catch(err){
     console.warn('PLM backend unavailable; running in local prototype mode.',err);
     PLM_BACKEND.ready=false;PLM_BACKEND.status='Local mode';
     v62EnsureTestRoleModel();
+    if(window.v46EnsurePurchaseSharingModel)window.v46EnsurePurchaseSharingModel();
   }
   renderAuth();
 }
@@ -9008,7 +9009,8 @@ plmBackendBootstrap();
   }
   function v39MoneyControl(key, raw, reset, allowNA=true){
     const s=String(raw??''),na=s==='N/A',n=(s.match(/[0-9]+(?:\.[0-9]+)?/)||[''])[0];
-    return `<div class="v39-template-control three"><input type="number" min="0" step="0.01" data-v39-money="${key}" value="${esc(n)}" ${reset||na?'disabled':''}><select class="v39-unit" data-v39-currency="${key}" ${reset||na?'disabled':''}><option>NGN</option><option>USD</option></select>${allowNA?`<label class="v39-na"><input type="checkbox" data-v39-na="${key}" ${na?'checked':''} ${reset?'disabled':''}> N/A</label>`:''}</div>`;
+    const currency=s.includes('$')?'USD':'NGN';
+    return `<div class="v39-template-control three"><input type="number" min="0" step="0.01" data-v39-money="${key}" value="${esc(n)}" ${reset||na?'disabled':''}><select class="v39-unit" data-v39-currency="${key}" ${reset||na?'disabled':''}><option ${currency==='NGN'?'selected':''}>NGN</option><option ${currency==='USD'?'selected':''}>USD</option></select>${allowNA?`<label class="v39-na"><input type="checkbox" data-v39-na="${key}" ${na?'checked':''} ${reset?'disabled':''}> N/A</label>`:''}</div>`;
   }
   function v39DurationControl(key, raw, reset, allowNA=true){
     return v39QuantityControl(key,raw,['Minutes','Hours','Days','Weeks','Months'],'Days',reset,allowNA);
@@ -9702,7 +9704,7 @@ plmBackendBootstrap();
       ${isEBDataProduct(f)?ewField(w,f,cur,'dataProductId','Product ID',{placeholder:'Catalogue / downstream product ID'}):''}
       ${ewField(w,f,cur,'dataPlanClass','Plan class / duration',{req:true,select:['Hourly','Daily','2 Days','3 Days','5 Days','Weekly','2-Weeks','Monthly','2 Months','3 Months','Yearly','Always-On','Digital channels only','Custom'],helper:'Select the commercial plan class or renewal cadence.'})}
       ${v45QuantityField(w,f,cur,'dataVolume','Data volume',{req:true,units:['MB','GB','TB'],fallback:'GB',helper:'Enter numbers only, then choose MB, GB or TB from the selector at the right.'})}
-      ${v45NumberField(w,f,cur,'dataPrice','Price (₦)',{req:true,min:0,step:'0.01',prefix:'₦',placeholder:'4000',helper:'Commercial selling price. It is validated against the latest approved price band.'})}
+      ${v45NumberField(w,f,cur,'dataPrice',`Price (${f.currency==='USD'?'$':'₦'})`,{req:true,min:0,step:'0.01',prefix:f.currency==='USD'?'$':'₦',placeholder:'4000',helper:'Commercial selling price in the product currency. It is validated against the latest approved price band.'})}
       ${v45NumberField(w,f,cur,'dataValidity','Validity',{req:true,min:1,step:'1',suffix:'days',placeholder:'30',helper:'Enter the number of validity days only.'})}
       ${v45NumberField(w,f,cur,'dataErmb','Effective rate per MB (ERMB)',{min:0,step:'0.0001',placeholder:'0.35',helper:'Optional numeric effective rate used for pricing analysis.'})}
       ${hub?v45NumberField(w,f,cur,'maxSims','Maximum number of SIMs',{min:1,step:'1',placeholder:'650',helper:'Optional numeric SIM ceiling for hub products.'}):''}
@@ -9710,8 +9712,6 @@ plmBackendBootstrap();
       ${v45QuantityField(w,f,cur,'youtubeNight','YouTube night data allowance',{units:['MB','GB','TB'],fallback:'GB',helper:'Optional. Leave blank if the bundle has no dedicated YouTube night allowance.'})}
       ${v45QuantityField(w,f,cur,'youtubeDay','YouTube daytime data allowance',{units:['MB','GB','TB'],fallback:'MB',helper:'Optional. Leave blank if the bundle has no dedicated YouTube daytime allowance.'})}
       ${v45TextArea(w,f,cur,'dataOtherAddons','Other bundled benefits',{full:true,placeholder:'e.g. 100 SMS/month; music subscription; social-data benefit',helper:'Optional free-text description for benefits that do not have a dedicated field.'})}
-      ${ewField(w,f,cur,'dataTransferability','Data transfer / gifting',{select:['Not allowed','Allowed','Conditional'],helper:'Choose whether bundle data may be transferred or gifted.'})}
-      ${f.dataTransferability==='Conditional'?v45TextArea(w,f,cur,'dataAdditionalInfo','Transfer / gifting conditions',{full:true,placeholder:'e.g. Up to 20% of the bundle may be transferred once per day',helper:'Required only when transferability is Conditional.'}):''}
       <div class="field full"><div class="v45-band-status"><strong>Price control:</strong> ${esc(v45BandText(f))}</div></div>
     </div></div>`;
   };
@@ -9741,13 +9741,13 @@ plmBackendBootstrap();
   const v45WFieldBase=wField;
   wField=function(w,f,cur,key,label,opts){
     const meta=V45_NUMERIC_FIELDS[key];
-    if(meta&&!(opts&&opts.select)&&!(opts&&opts.checkbox))return v45NumberField(w,f,cur,key,label,Object.assign({},opts||{},meta));
+    if(meta&&!(opts&&opts.select)&&!(opts&&opts.checkbox))return v45NumberField(w,f,cur,key,label,Object.assign({},meta,opts||{},meta.prefix?{prefix:f.currency==='USD'?'$':'₦'}:{}));
     return v45WFieldBase(w,f,cur,key,label,opts);
   };
   const v45EwFieldBase=ewField;
   ewField=function(w,f,cur,key,label,opts){
     const meta=V45_NUMERIC_FIELDS[key];
-    if(meta&&!(opts&&opts.select)&&!(opts&&opts.checkbox))return v45NumberField(w,f,cur,key,label,Object.assign({},opts||{},meta));
+    if(meta&&!(opts&&opts.select)&&!(opts&&opts.checkbox))return v45NumberField(w,f,cur,key,label,Object.assign({},meta,opts||{},meta.prefix?{prefix:f.currency==='USD'?'$':'₦'}:{}));
     return v45EwFieldBase(w,f,cur,key,label,opts);
   };
 
@@ -9901,6 +9901,490 @@ plmBackendBootstrap();
   };
   const v45RenderBase=render;
   render=function(){const out=v45RenderBase();setTimeout(()=>{v45ApplyRequiredMarkers();window.v45AuditVisibleForm();},0);return out;};
+})();
+</script>
+
+<script>
+/* ============================================================
+   V46 — governed Purchase & Sharing configuration
+   One product-level model replaces the legacy Data transferability
+   and Enterprise-only Buy For Other controls.
+   ============================================================ */
+(function(){
+  const SHARE_SECTION=['purchaseSharing','Purchase & Sharing','Sharing limits and recipient purchase rules'];
+  const SHARE_LABELS=['Shareable','Maximum shareable percentage','Buy for Others','Sharing conditions'];
+
+  function v46YesNo(value){return String(value||'').toLowerCase()==='yes'?'Yes':'No';}
+  function v46ExtractPercent(value){
+    const match=String(value||'').match(/(\d+(?:\.\d+)?)\s*%/);
+    return match?match[1]:'';
+  }
+  function v46NormalizeSharingFields(fields){
+    if(!fields||typeof fields!=='object')return false;
+    let changed=false;
+    if(!Object.prototype.hasOwnProperty.call(fields,'sharingAllowed')){
+      fields.sharingAllowed=['Allowed','Conditional'].includes(fields.dataTransferability)?'Yes':'No';changed=true;
+    }else{
+      const next=v46YesNo(fields.sharingAllowed);if(fields.sharingAllowed!==next){fields.sharingAllowed=next;changed=true;}
+    }
+    if(!Object.prototype.hasOwnProperty.call(fields,'shareablePercentage')){
+      fields.shareablePercentage=fields.sharingAllowed==='Yes'?v46ExtractPercent(fields.dataAdditionalInfo):'';changed=true;
+    }
+    if(!Object.prototype.hasOwnProperty.call(fields,'sharingConditions')){
+      const legacy=String(fields.dataAdditionalInfo||'').trim();
+      fields.sharingConditions=fields.sharingAllowed==='Yes'&&legacy.toUpperCase()!=='N/A'?legacy:'';changed=true;
+    }
+    if(!Object.prototype.hasOwnProperty.call(fields,'buyForOthersAllowed')){
+      fields.buyForOthersAllowed=v46YesNo(fields.buyForOther);changed=true;
+    }else{
+      const next=v46YesNo(fields.buyForOthersAllowed);if(fields.buyForOthersAllowed!==next){fields.buyForOthersAllowed=next;changed=true;}
+    }
+    if(fields.sharingAllowed!=='Yes'&&fields.shareablePercentage!==''){fields.shareablePercentage='';changed=true;}
+    return changed;
+  }
+  function v46EnsurePurchaseSharingModel(){
+    (DATA.products||[]).forEach(p=>v46NormalizeSharingFields(p.current));
+    (DATA.templates||[]).forEach(t=>v46NormalizeSharingFields(t.config));
+    (DATA.requests||[]).forEach(r=>v46NormalizeSharingFields(r.requestData));
+    if(state&&state.wizard){v46NormalizeSharingFields(state.wizard.fields);v46NormalizeSharingFields(state.wizard.currentFields);}
+    if(state&&state.templateDraft)v46NormalizeSharingFields(state.templateDraft.fields);
+  }
+  window.v46EnsurePurchaseSharingModel=v46EnsurePurchaseSharingModel;
+
+  const v46NewWizardFieldsBase=newWizardFields;
+  newWizardFields=function(tplId){
+    const fields=v46NewWizardFieldsBase(tplId);
+    Object.assign(fields,{sharingAllowed:'No',shareablePercentage:'',buyForOthersAllowed:'No',sharingConditions:''});
+    return fields;
+  };
+
+  function v46InsertSharingSection(sections){
+    const rows=(sections||[]).map(row=>[...row]);
+    if(rows.some(row=>row[0]===SHARE_SECTION[0]))return rows;
+    const index=rows.findIndex(row=>row[0]==='addons');
+    rows.splice(index<0?rows.length:index,0,[...SHARE_SECTION]);
+    return rows;
+  }
+  if(!CONFIG_SECTIONS.some(row=>row[0]===SHARE_SECTION[0])){
+    const index=CONFIG_SECTIONS.findIndex(row=>row[0]==='addons');
+    CONFIG_SECTIONS.splice(index<0?CONFIG_SECTIONS.length:index,0,[...SHARE_SECTION]);
+  }
+  const v46EnterpriseSectionsBase=enterpriseConfigSections;
+  enterpriseConfigSections=function(f){return v46InsertSharingSection(v46EnterpriseSectionsBase(f));};
+  const v46DataSectionsBase=dataConfigSections;
+  dataConfigSections=function(f){return v46InsertSharingSection(v46DataSectionsBase(f));};
+
+  function v46Locked(w,f,key){return ['create','clone'].includes(w.type)&&wizardTemplateLocked(f,key);}
+  function v46SelectField(w,f,cur,key,label,helper){
+    const current=w.type==='modify'&&cur,locked=v46Locked(w,f,key);
+    const control=(value,disabled,isCurrent)=>`<select ${isCurrent?'':'data-f="'+key+'"'} ${disabled?'disabled':''}>${['No','Yes'].map(x=>`<option ${value===x?'selected':''}>${x}</option>`).join('')}</select>`;
+    const editor=control(f[key]||'No',locked,false);
+    return `<div class="field"><label>${esc(label)}<span class="req">*</span></label>${current?`<div class="current-new"><div class="cn-col"><span class="cn-label">Current</span>${control(cur[key]||'No',true,true)}</div><div class="cn-col"><span class="cn-label">New</span>${editor}</div></div>`:editor}${locked?'<span class="helper">Inherited from the certified template and locked.</span>':`<span class="helper">${esc(helper)}</span>`}</div>`;
+  }
+  function v46PercentField(w,f,cur){
+    const key='shareablePercentage',current=w.type==='modify'&&cur,locked=v46Locked(w,f,key);
+    const control=(value,disabled,isCurrent)=>`<div class="v45-input-group"><input type="number" min="1" max="100" step="1" inputmode="numeric" ${isCurrent?'':'data-f="'+key+'"'} value="${esc(String(value||''))}" placeholder="20" ${disabled?'readonly':''}><span class="v45-suffix">%</span></div>`;
+    const editor=control(f[key],locked,false);
+    return `<div class="field"><label>Maximum shareable percentage<span class="req">*</span></label>${current?`<div class="current-new"><div class="cn-col"><span class="cn-label">Current</span>${control(cur[key],true,true)}</div><div class="cn-col"><span class="cn-label">New</span>${editor}</div></div>`:editor}${locked?'<span class="helper">Inherited from the certified template and locked.</span>':'<span class="helper">Maximum cumulative percentage of the purchased entitlement that the customer may share. Enter a whole number from 1 to 100.</span>'}</div>`;
+  }
+  function v46ConditionsField(w,f,cur){
+    const key='sharingConditions',current=w.type==='modify'&&cur,locked=v46Locked(w,f,key);
+    const control=(value,disabled,isCurrent)=>`<textarea class="v44-textarea" ${isCurrent?'readonly':'data-f="'+key+'"'} ${disabled&&!isCurrent?'disabled':''} placeholder="Optional recipient, frequency, channel or minimum-balance rules">${esc(value||'')}</textarea>`;
+    const editor=control(f[key],locked,false);
+    return `<div class="field full"><label>Sharing conditions</label>${current?`<div class="current-new"><div class="cn-col"><span class="cn-label">Current</span>${control(cur[key],true,true)}</div><div class="cn-col"><span class="cn-label">New</span>${editor}</div></div>`:editor}${locked?'<span class="helper">Inherited from the certified template and locked.</span>':'<span class="helper">Optional operational restrictions in addition to the percentage ceiling.</span>'}</div>`;
+  }
+  function v46SharingSectionHTML(w,f,cur){
+    v46NormalizeSharingFields(f);v46NormalizeSharingFields(cur);
+    return `<div class="card config-main-card"><div class="card-head"><div><h3>Purchase &amp; Sharing</h3><p>Control whether an entitlement can be shared and whether a purchaser may nominate another recipient.</p></div></div><div class="form">
+      ${v46SelectField(w,f,cur,'sharingAllowed','Shareable','Choose Yes only when the purchased entitlement may be transferred or shared with another customer.')}
+      ${v46SelectField(w,f,cur,'buyForOthersAllowed','Buy for Others','Choose Yes when the purchaser may buy this product directly for another eligible recipient.')}
+      ${f.sharingAllowed==='Yes'?v46PercentField(w,f,cur):''}
+      ${f.sharingAllowed==='Yes'?v46ConditionsField(w,f,cur):''}
+    </div><div class="callout info" style="margin-top:14px"><strong>Independent controls</strong>A product may allow Buy for Others without allowing an already purchased entitlement to be shared. The share percentage applies only to post-purchase sharing.</div></div>`;
+  }
+  const v46WizardSectionBase=wizardConfigSectionHTML;
+  wizardConfigSectionHTML=function(w,f,cur,active){
+    if(active==='purchaseSharing'&&!['bulk','suspend','retire','reactivate'].includes(w.type))return v46SharingSectionHTML(w,f,cur);
+    return v46WizardSectionBase(w,f,cur,active);
+  };
+  const v46WizardCompleteBase=wizardSectionComplete;
+  wizardSectionComplete=function(key,f){
+    if(key==='purchaseSharing'){
+      v46NormalizeSharingFields(f);
+      const pct=Number(f.shareablePercentage);
+      return ['Yes','No'].includes(f.sharingAllowed)&&['Yes','No'].includes(f.buyForOthersAllowed)&&(f.sharingAllowed!=='Yes'||(Number.isInteger(pct)&&pct>=1&&pct<=100));
+    }
+    return v46WizardCompleteBase(key,f);
+  };
+
+  TEMPLATE_GROUPS.enterpriseAllowances=(TEMPLATE_GROUPS.enterpriseAllowances||[]).filter(x=>x!=='Buy For Other');
+  TEMPLATE_GROUPS.dataCore=(TEMPLATE_GROUPS.dataCore||[]).filter(x=>x!=='Transferability / additional info');
+  TEMPLATE_GROUPS.purchaseSharing=[...SHARE_LABELS];
+  Object.assign(TEMPLATE_FIELD_KEYS,{
+    'Shareable':'sharingAllowed',
+    'Maximum shareable percentage':'shareablePercentage',
+    'Buy for Others':'buyForOthersAllowed',
+    'Sharing conditions':'sharingConditions'
+  });
+  const v46TemplateTitleBase=v34TemplateTitleMap;
+  v34TemplateTitleMap=function(d){
+    const titles=v46TemplateTitleBase(d),out={};
+    Object.entries(titles).forEach(([key,value])=>{if(key==='addons')out.purchaseSharing='Purchase & Sharing';out[key]=value;});
+    if(!out.purchaseSharing)out.purchaseSharing='Purchase & Sharing';
+    return out;
+  };
+  const v46TemplateFieldBase=templateFieldInput;
+  templateFieldInput=function(label,f,t){
+    if(!SHARE_LABELS.includes(label))return v46TemplateFieldBase(label,f,t);
+    v46NormalizeSharingFields(f);
+    const key=TEMPLATE_FIELD_KEYS[label],treatment=t[label]||'Editable',reset=treatment==='Reset',raw=f[key];
+    let input='';
+    if(label==='Shareable'||label==='Buy for Others')input=`<select data-tfd="${key}" ${reset?'disabled':''}>${['No','Yes'].map(x=>`<option ${raw===x?'selected':''}>${x}</option>`).join('')}</select>`;
+    else if(label==='Maximum shareable percentage')input=`<div class="v45-input-group"><input type="number" min="1" max="100" step="1" data-tfd="${key}" value="${esc(String(raw||''))}" ${reset||f.sharingAllowed!=='Yes'?'disabled':''}><span class="v45-suffix">%</span></div>`;
+    else input=`<textarea data-tfd="${key}" ${reset||f.sharingAllowed!=='Yes'?'disabled':''} placeholder="Optional sharing rules">${esc(raw||'')}</textarea>`;
+    return `<div class="template-field-row"><div><strong>${esc(label)}</strong><span class="helper">${treatment==='Inherited'?'Defined by the template and locked on use.':treatment==='Reset'?'Not carried into the product; supplied during product creation.':'Used as a default and editable within approved controls.'}</span></div>${input}<select data-tt="${esc(label)}">${['Inherited','Editable','Reset'].map(x=>`<option ${treatment===x?'selected':''}>${x}</option>`).join('')}</select></div>`;
+  };
+
+  function v46SharingErrors(f){
+    v46NormalizeSharingFields(f);const errs=[];
+    if(!['Yes','No'].includes(f.sharingAllowed))errs.push('Shareable must be Yes or No.');
+    if(!['Yes','No'].includes(f.buyForOthersAllowed))errs.push('Buy for Others must be Yes or No.');
+    if(f.sharingAllowed==='Yes'){
+      const pct=Number(f.shareablePercentage);
+      if(!Number.isInteger(pct)||pct<1||pct>100)errs.push('Maximum shareable percentage is required and must be a whole number from 1 to 100.');
+    }
+    return errs;
+  }
+  const v46ValidateWizardBase=validateWizard;
+  validateWizard=function(f){
+    const out=v46ValidateWizardBase(f);v46SharingErrors(f).forEach(x=>out.errs.push(x));
+    if(f.sharingAllowed==='Yes')out.warns.push(`Sharing is enabled with a ${f.shareablePercentage}% cumulative ceiling.`);
+    if(f.buyForOthersAllowed==='Yes')out.warns.push('Buy for Others is enabled; recipient eligibility and provisioning must be covered in UAT.');
+    out.errs=[...new Set(out.errs)];out.warns=[...new Set(out.warns||[])];return out;
+  };
+  const v46SubmitTemplateBase=v38SubmitTemplate;
+  v38SubmitTemplate=function(){
+    const draft=ensureTemplateDraft(),errs=v46SharingErrors(draft.fields);
+    if(errs.length){toast(errs[0]);return;}
+    return v46SubmitTemplateBase();
+  };
+
+  const v46RiskBase=riskAssessment;
+  riskAssessment=function(f){
+    v46NormalizeSharingFields(f);const rows=v46RiskBase(f),enabled=f.sharingAllowed==='Yes'||f.buyForOthersAllowed==='Yes';
+    rows.push({component:'Sharing & recipient purchase',score:enabled?2:0,reason:enabled?'Sharing or third-party recipient journeys require entitlement, eligibility and fraud controls':'Both recipient-transfer capabilities are disabled'});
+    return rows;
+  };
+  if(typeof V37_FIELD_META==='object')Object.assign(V37_FIELD_META,{sharingAllowed:{area:'Eligibility'},shareablePercentage:{area:'Eligibility'},buyForOthersAllowed:{area:'Eligibility'},sharingConditions:{area:'Eligibility'}});
+
+  const v46SummaryBase=validationSummaryRows;
+  validationSummaryRows=function(f){
+    v46NormalizeSharingFields(f);
+    const legacy=new Set(['Data transfer / gifting','Transfer / gifting conditions']);
+    const rows=v46SummaryBase(f).filter(row=>!legacy.has(row[0]));
+    const extra=[['Shareable',f.sharingAllowed],...(f.sharingAllowed==='Yes'?[['Maximum shareable percentage',f.shareablePercentage?`${f.shareablePercentage}%`:'Needs review'],['Sharing conditions',f.sharingConditions||'None specified']]:[]),['Buy for Others',f.buyForOthersAllowed]];
+    const index=rows.findIndex(row=>row[0]==='Add-Ons');rows.splice(index<0?rows.length:index,0,...extra);return rows;
+  };
+
+  const v46ProductTabsBase=productDetailTabs;
+  productDetailTabs=function(active,p){
+    const html=v46ProductTabsBase(active,p),needle='<button class="tab" data-act="tab" data-tab="addons"';
+    if(html.includes('data-tab="sharing"'))return html;
+    const tab=`<button class="tab" data-act="tab" data-tab="sharing" aria-selected="${active==='sharing'}">Purchase &amp; Sharing</button>`;
+    return html.replace(needle,tab+needle);
+  };
+  const v46ProductDetailBase=renderProductDetailTab;
+  renderProductDetailTab=function(p,active){
+    if(active!=='sharing')return v46ProductDetailBase(p,active);
+    const f=productDisplayFields(p);v46NormalizeSharingFields(f);
+    return `<div class="cols-2">${detailSection('Sharing policy','Controls for sharing an entitlement after purchase.',f.sharingAllowed==='Yes'?detailKV([['Shareable','Yes'],['Maximum shareable percentage',f.shareablePercentage?f.shareablePercentage+'%':'Needs review'],['Conditions',f.sharingConditions||'None specified']]):detailKV([['Shareable','No'],['Maximum shareable percentage','Not applicable']]))}${detailSection('Recipient purchase','Controls for purchasing this product for another customer.',detailKV([['Buy for Others',f.buyForOthersAllowed],['Recipient eligibility',f.buyForOthersAllowed==='Yes'?'The recipient must satisfy the product eligibility rules.':'Not applicable']]))}</div>`;
+  };
+
+  const v46GenerateTestPackBase=generateRiskBasedTestPack;
+  generateRiskBasedTestPack=function(rid){
+    v46GenerateTestPackBase(rid);
+    if(state.role!=='test')return;
+    const P=DATA.releasePipeline[rid],r=DATA.requests.find(x=>x.id===rid);if(!P||!r||P.state.preTestApproved)return;
+    const f=r.requestData||{};v46NormalizeSharingFields(f);const additions=[];
+    if(f.sharingAllowed==='Yes'){
+      additions.push({scenario:'Share at configured percentage ceiling',objective:`Confirm a cumulative share of ${f.shareablePercentage}% is accepted and the correct balances are posted.`,system:'Charging / Entitlements',testType:'Functional',priority:'Critical',expected:`Sharing succeeds up to exactly ${f.shareablePercentage}% of the purchased entitlement.`});
+      additions.push({scenario:'Reject share above configured ceiling',objective:'Confirm a single or cumulative share above the approved percentage is rejected.',system:'Charging / Entitlements',testType:'Negative / Boundary',priority:'Critical',expected:`Any cumulative share above ${f.shareablePercentage}% is rejected without unintended balance movement.`});
+    }else additions.push({scenario:'Reject post-purchase sharing',objective:'Confirm this non-shareable product cannot be transferred or gifted.',system:'Charging / Entitlements',testType:'Negative / Boundary',priority:'High',expected:'The share attempt is rejected and balances remain unchanged.'});
+    if(f.buyForOthersAllowed==='Yes')additions.push({scenario:'Buy for an eligible recipient',objective:'Confirm a purchaser can nominate another eligible customer and the entitlement is provisioned only to that recipient.',system:'Channels / Provisioning',testType:'End-to-end',priority:'Critical',expected:'The purchaser is charged once and the approved entitlement is provisioned to the eligible recipient.'});
+    else additions.push({scenario:'Reject Buy for Others journey',objective:'Confirm channels do not permit a different recipient for this product.',system:'Channels / Provisioning',testType:'Negative / Boundary',priority:'High',expected:'A third-party recipient purchase is rejected before charging or provisioning.'});
+    let added=0;additions.forEach(a=>{if(P.tests.some(t=>(t.scenario||t.scen)===a.scenario))return;const n=String(P.tests.length+1).padStart(2,'0');P.tests.push({id:`TC-${rid.slice(-4)}-${n}`,...a,mandatory:true,preconditions:'Approved configuration package deployed and acknowledged in Test/UAT.',testData:'Authorised purchaser and recipient test identities with known opening balances.',steps:['Prepare purchaser and recipient test data.','Execute the configured purchase or sharing journey.','Verify charging, entitlement ownership and balances.','Capture evidence and compare with the approved rule.'],executions:[],res:'Not run',act:'Not executed'});added++;});
+    if(added)appendAudit(AUTH.account?AUTH.account.name:'Test Analyst','Test Analyst','Purchase and sharing tests generated',rid,'ok','Testing',`${added} governed purchase/sharing test case(s) added.`);
+    render();
+  };
+
+  document.addEventListener('change',e=>{
+    const el=e.target;if(!el||!el.dataset)return;
+    if(state.wizard&&el.dataset.f==='sharingAllowed'){
+      state.wizard.fields.sharingAllowed=v46YesNo(el.value);
+      if(state.wizard.fields.sharingAllowed!=='Yes'){state.wizard.fields.shareablePercentage='';state.wizard.fields.sharingConditions='';}
+    }
+    if(state.templateDraft&&el.dataset.tfd==='sharingAllowed'){
+      state.templateDraft.fields.sharingAllowed=v46YesNo(el.value);
+      if(state.templateDraft.fields.sharingAllowed!=='Yes'){state.templateDraft.fields.shareablePercentage='';state.templateDraft.fields.sharingConditions='';}
+    }
+  },true);
+
+  v46EnsurePurchaseSharingModel();
+})();
+</script>
+
+<script>
+/* ============================================================
+   V47 — cross-platform consistency and authoritative controls
+   ============================================================ */
+(function(){
+  const V47_DATA_TYPE_ALIASES={
+    'IoT Per-SIM':'IoT Per-SIM Bundle',
+    'BizPlus / ConnectMore / MSME':'BizPlus / ConnectMore / MSME Learning'
+  };
+  const V47_MONEY_KEYS=['price','dataPrice','accessFee','dailyAccessFee','fixedInstallationFee','fixedMonthlyAccessFee','sipNrc','sipMrc','messagingUnitPrice','apnSetupFee','annualVpnCost','monthlyVpnCost','dataNrc','dataMrc','mrrExVat','priceInclVat','year1Price','year2RenewalPrice','dataRenewalAmount','dataOption1','dataOption2','dataOption3','campaignSmsCost','businessTipsCost','callerFeelCost','callerTunezCost','msLicencePrice','dataTotalPrice'];
+  const V47_CHANNEL_ALIASES={MyMTN:'MyMTN App',Eshop:'eShop'};
+  const V47_COMMON_SECTIONS=[
+    ['commercialPolicy','Commercial, Tax & Regulatory','Currency, billing, VAT and regulatory applicability'],
+    ['entitlementPolicy','Eligibility, Renewal & Fulfilment','Customer eligibility, renewal, rollover and fulfilment']
+  ];
+
+  function v47YesNo(v,fallback='No'){
+    if(v===true||String(v).toLowerCase()==='yes')return 'Yes';
+    if(v===false||String(v).toLowerCase()==='no')return 'No';
+    return fallback;
+  }
+  function v47InferCurrency(f){
+    if(f&&['NGN','USD'].includes(f.currency))return f.currency;
+    return V47_MONEY_KEYS.some(k=>String((f||{})[k]||'').includes('$'))?'USD':'NGN';
+  }
+  function v47NormalizeConfig(f){
+    if(!f||typeof f!=='object')return f;
+    if(V47_DATA_TYPE_ALIASES[f.dataProductType])f.dataProductType=V47_DATA_TYPE_ALIASES[f.dataProductType];
+    if(!f.dataServiceScope&&f.serviceScopeType)f.dataServiceScope=f.serviceScopeType==='Selected services/apps'?'Selected apps / services':f.serviceScopeType;
+    if(!f.dataServiceDetails&&Array.isArray(f.serviceApps)&&f.serviceApps.length)f.dataServiceDetails=f.serviceApps.join(', ');
+    if(!f.simPopulationBand&&f.iotSimBand)f.simPopulationBand=f.iotSimBand;
+    if(f.apnRequired===true)f.apnRequired='Yes';else if(f.apnRequired===false)f.apnRequired='No';
+    f.channels=[...new Set((Array.isArray(f.channels)?f.channels:[]).map(ch=>V47_CHANNEL_ALIASES[ch]||ch))];
+    f.currency=v47InferCurrency(f);
+    f.billingBasis=f.billingBasis||(/Business|Enterprise/.test(f.subcategory||'')?'Postpaid':'Prepaid');
+    f.vatTreatment=f.vatTreatment||((f.cat==='Offers'||f.cat==='Bundle Features')?'Not applicable':'VAT Inclusive');
+    f.regulatoryApplicability=f.regulatoryApplicability||'Assessment required';
+    f.autoRenewAllowed=v47YesNo(f.autoRenewAllowed,f.recurringAllowed||'No');
+    f.rolloverAllowed=v47YesNo(f.rolloverAllowed,'No');
+    f.rolloverCycles=f.rolloverAllowed==='Yes'?String(f.rolloverCycles||'1'):'';
+    f.fulfilmentMode=f.fulfilmentMode||f.provisioningMode||'Automatic provisioning';
+    if(!Object.prototype.hasOwnProperty.call(f,'sharingAllowed'))f.sharingAllowed=['Allowed','Conditional'].includes(f.dataTransferability)?'Yes':'No';
+    if(!Object.prototype.hasOwnProperty.call(f,'shareablePercentage'))f.shareablePercentage=f.sharingAllowed==='Yes'?((String(f.dataAdditionalInfo||'').match(/(\d+(?:\.\d+)?)\s*%/)||[])[1]||''):'';
+    if(!Object.prototype.hasOwnProperty.call(f,'sharingConditions'))f.sharingConditions=f.sharingAllowed==='Yes'?String(f.dataAdditionalInfo||'').replace(/^N\/A$/i,''):'';
+    if(!Object.prototype.hasOwnProperty.call(f,'buyForOthersAllowed'))f.buyForOthersAllowed=v47YesNo(f.buyForOther);
+    return f;
+  }
+  function v47NormalizeAll(){
+    (DATA.products||[]).forEach(p=>v47NormalizeConfig(p.current));
+    (DATA.templates||[]).forEach(t=>v47NormalizeConfig(t.config));
+    (DATA.requests||[]).forEach(r=>v47NormalizeConfig(r.requestData));
+    if(state.wizard){v47NormalizeConfig(state.wizard.fields);v47NormalizeConfig(state.wizard.currentFields);}
+    if(state.templateDraft)v47NormalizeConfig(state.templateDraft.fields);
+  }
+  window.v47NormalizeConfig=v47NormalizeConfig;
+  window.v47NormalizeAll=v47NormalizeAll;
+
+  const v47NormalizeTariffBase=normalizeTariffFields;
+  normalizeTariffFields=function(o){return v47NormalizeConfig(v47NormalizeTariffBase(o));};
+  const v47NewFieldsBase=newWizardFields;
+  newWizardFields=function(tplId){return v47NormalizeConfig(v47NewFieldsBase(tplId));};
+
+  const V47_DIFF_LABELS={};
+  Object.entries(TEMPLATE_FIELD_KEYS||{}).forEach(([label,key])=>{if(!V47_DIFF_LABELS[key])V47_DIFF_LABELS[key]=label;});
+  Object.assign(V47_DIFF_LABELS,{currency:'Currency',regulatoryApplicability:'Regulatory applicability',autoRenewAllowed:'Automatic renewal',rolloverAllowed:'Rollover',rolloverCycles:'Rollover cycles',fulfilmentMode:'Fulfilment mode',dataServiceDetails:'Service / app details',apnRequired:'APN required',apnName:'APN name'});
+  const V47_DIFF_IGNORED=new Set(['just','impactConfirmed','sourceProductId','sourceProductName','currentStatus','currentVersion','templateMode','dataVolumeUnit','youtubeNightUnit','youtubeDayUnit']);
+  function v47Comparable(v){if(v==null||v==='')return '';if(Array.isArray(v))return JSON.stringify(v);if(typeof v==='object')return JSON.stringify(v);return String(v);}
+  function v47Display(v){if(v==null||v==='')return '—';if(Array.isArray(v))return v.join(', ')||'—';if(typeof v==='object')return JSON.stringify(v);return String(v);}
+  window.buildRequestDiffs=function(w){
+    if(!w)return [];
+    if(w.type==='bulk')return bulkChildRows(w).flatMap(child=>child.changes.filter(c=>v47Comparable(c.current)!==v47Comparable(c.proposed)).map(c=>({f:`${child.productId} · ${c.label}`,o:v47Display(c.current),n:v47Display(c.proposed),mat:true,productId:child.productId})));
+    if(w.type!=='modify'||!w.currentFields)return [];
+    const before=v47NormalizeConfig(Object.assign(newWizardFields(),JSON.parse(JSON.stringify(w.currentFields))));
+    const after=v47NormalizeConfig(JSON.parse(JSON.stringify(w.fields||{})));
+    const keys=new Set([...Object.keys(before),...Object.keys(after)]),out=[];
+    keys.forEach(key=>{
+      if(V47_DIFF_IGNORED.has(key)||key.endsWith('Unit'))return;
+      const oldValue=v47Comparable(before[key]),newValue=v47Comparable(after[key]);
+      if(oldValue===newValue)return;
+      const area=typeof v37FieldArea==='function'?v37FieldArea(key):null;
+      out.push({f:V47_DIFF_LABELS[key]||key.replace(/([a-z])([A-Z])/g,'$1 $2').replace(/^./,c=>c.toUpperCase()),o:v47Display(before[key]),n:v47Display(after[key]),mat:!!area||/price|tax|vat|eligib|sharing|renew|rollover|wallet|charging|regulatory|fulfil|provision/i.test(key),key});
+    });
+    return out;
+  };
+
+  function v47InsertSections(rows,f){
+    if(isEnterprisePlan(f))return rows;
+    const out=rows.map(r=>[...r]);
+    V47_COMMON_SECTIONS.forEach(section=>{if(!out.some(r=>r[0]===section[0])){const at=out.findIndex(r=>r[0]==='purchaseSharing');out.splice(at<0?out.length:at,0,[...section]);}});
+    return out;
+  }
+  const v47RequestSectionsBase=requestConfigSections;
+  requestConfigSections=function(w){const rows=v47RequestSectionsBase(w);if(!w||['bulk','suspend','retire','reactivate'].includes(w.type))return rows;return v47InsertSections(rows,w.fields||{});};
+  const v47SectionCompleteBase=requestSectionComplete;
+  requestSectionComplete=function(w,key){
+    if(key==='commercialPolicy'){const f=w.fields||{};return !!(f.currency&&f.billingBasis&&f.vatTreatment&&f.regulatoryApplicability);}
+    if(key==='entitlementPolicy'){const f=w.fields||{},cycles=Number(f.rolloverCycles);return !!(f.eligibility&&f.autoRenewAllowed&&f.rolloverAllowed&&f.fulfilmentMode&&(f.rolloverAllowed!=='Yes'||(Number.isInteger(cycles)&&cycles>=1&&cycles<=12)));}
+    return v47SectionCompleteBase(w,key);
+  };
+
+  function v47CommercialPolicyHTML(w,f,cur){
+    return `<div class="card config-main-card"><div class="card-head"><div><h3>Commercial, Tax &amp; Regulatory</h3><p>Use one governed commercial policy across templates, requests, approvals and product details.</p></div></div><div class="form">${ewField(w,f,cur,'currency','Currency',{req:true,select:['NGN','USD']})}${ewField(w,f,cur,'billingBasis','Billing basis',{req:true,select:['Prepaid','Postpaid','Hybrid / Both','Per transaction','Not applicable']})}${ewField(w,f,cur,'vatTreatment','VAT treatment',{req:true,select:['VAT Inclusive','VAT Exclusive','Non-VAT','Not applicable']})}${ewField(w,f,cur,'regulatoryApplicability','Regulatory applicability',{req:true,select:['Assessment required','Applicable - approval required','Applicable - notification / filing required','Not applicable','Conditional - evidence required'],full:true})}</div></div>`;
+  }
+  function v47EntitlementPolicyHTML(w,f,cur){
+    const cycles=f.rolloverAllowed==='Yes'?ewField(w,f,cur,'rolloverCycles','Maximum rollover cycles',{req:true}):'';
+    return `<div class="card config-main-card"><div class="card-head"><div><h3>Eligibility, Renewal &amp; Fulfilment</h3><p>Define who can receive the entitlement and how it renews, rolls over and is provisioned.</p></div></div><div class="form">${ewField(w,f,cur,'eligibility','Customer eligibility',{req:true,full:true,placeholder:'Eligible customer segment, account type and qualification rules'})}${ewField(w,f,cur,'autoRenewAllowed','Automatic renewal',{req:true,select:['No','Yes']})}${ewField(w,f,cur,'rolloverAllowed','Unused entitlement rollover',{req:true,select:['No','Yes']})}${cycles}${ewField(w,f,cur,'fulfilmentMode','Fulfilment mode',{req:true,select:['Automatic provisioning','USSD activation','App / Web activation','Back-end provisioning','Manual fulfilment','Not applicable'],full:true})}</div></div>`;
+  }
+  function v47Channels(f){const base=[...(CHANNELS_BY_CATEGORY[f.cat]||[])];if(f.division==='EB'&&!base.includes('Enterprise Portal'))base.push('Enterprise Portal');return base;}
+  const v47WizardHTMLBase=wizardConfigSectionHTML;
+  wizardConfigSectionHTML=function(w,f,cur,active){
+    v47NormalizeConfig(f);v47NormalizeConfig(cur);
+    if(active==='commercialPolicy')return v47CommercialPolicyHTML(w,f,cur);
+    if(active==='entitlementPolicy')return v47EntitlementPolicyHTML(w,f,cur);
+    if(active==='channels'){
+      const notificationOptions=f.division==='EB'?['Enterprise notification','Standard notification','Mass customer communication','No external impact']:['Standard notification','Mass customer communication','No external impact'];
+      return `<div class="card config-main-card"><div class="card-head"><div><h3>Channels &amp; communication</h3><p>Select governed publication channels and customer-notification treatment.</p></div></div><div class="field"><label>Publication channels<span class="req">*</span></label><div class="checkbox-grid">${v47Channels(f).map(ch=>`<label class="checkbox-card"><input type="checkbox" data-act="toggleChannel" data-ch="${esc(ch)}" ${f.channels.includes(ch)?'checked':''} ${wizardTemplateLocked(f,'channels')?'disabled':''}> ${esc(ch)}</label>`).join('')}</div></div><div class="hr"></div><div class="form">${wField(w,f,cur,'notification','Notification',{select:notificationOptions,full:true})}</div></div>`;
+    }
+    return v47WizardHTMLBase(w,f,cur,active);
+  };
+
+  const v47EnterpriseHTMLBase=enterpriseConfigSectionHTML;
+  enterpriseConfigSectionHTML=function(w,f,cur,active){
+    let html=v47EnterpriseHTMLBase(w,f,cur,active);
+    if(active==='enterpriseProfile')html=html.replace('</div></div>',`${ewField(w,f,cur,'currency','Currency',{req:true,select:['NGN','USD']})}${ewField(w,f,cur,'regulatoryApplicability','Regulatory applicability',{req:true,select:['Assessment required','Applicable - approval required','Applicable - notification / filing required','Not applicable','Conditional - evidence required']})}</div></div>`);
+    if(active==='enterpriseAllowances')html=html.replace('</div></div>',`${ewField(w,f,cur,'rolloverAllowed','Unused entitlement rollover',{req:true,select:['No','Yes']})}${f.rolloverAllowed==='Yes'?ewField(w,f,cur,'rolloverCycles','Maximum rollover cycles',{req:true}):''}</div></div>`);
+    return html;
+  };
+
+  const v47DataHTMLBase=dataConfigSectionHTML;
+  dataConfigSectionHTML=function(w,f,cur,active){
+    let html=v47DataHTMLBase(w,f,cur,active);
+    if(active==='dataRestriction')html=html.replace('</div></div>',`${ewField(w,f,cur,'dataServiceDetails','Selected service / app details',{full:true,placeholder:'e.g. WhatsApp, TikTok, YouTube'})}</div></div>`);
+    if(active==='dataIot'&&f.dataProductType==='IoT Per-SIM Bundle')html=html.replace('</div></div>',`${ewField(w,f,cur,'apnRequired','APN required',{select:['No','Yes']})}${f.apnRequired==='Yes'?ewField(w,f,cur,'apnName','APN name',{placeholder:'e.g. MTN-IOT'}):''}</div></div>`);
+    return html;
+  };
+
+  TEMPLATE_GROUPS.commercialPolicy=['Currency','Billing basis','VAT treatment','Regulatory applicability'];
+  TEMPLATE_GROUPS.entitlementPolicy=['Customer eligibility','Automatic renewal','Unused entitlement rollover','Maximum rollover cycles','Fulfilment mode'];
+  ['Currency','Regulatory applicability'].forEach(x=>{if(!TEMPLATE_GROUPS.enterpriseProfile.includes(x))TEMPLATE_GROUPS.enterpriseProfile.push(x);});
+  ['Unused entitlement rollover','Maximum rollover cycles'].forEach(x=>{if(!TEMPLATE_GROUPS.enterpriseAllowances.includes(x))TEMPLATE_GROUPS.enterpriseAllowances.push(x);});
+  Object.assign(TEMPLATE_FIELD_KEYS,{'Currency':'currency','Regulatory applicability':'regulatoryApplicability','Automatic renewal':'autoRenewAllowed','Unused entitlement rollover':'rolloverAllowed','Maximum rollover cycles':'rolloverCycles','Fulfilment mode':'fulfilmentMode'});
+  const v47TemplateTitlesBase=v34TemplateTitleMap;
+  v34TemplateTitleMap=function(d){
+    const titles=v47TemplateTitlesBase(d);if(isEnterprisePlan(d.fields))return titles;
+    const out={};Object.entries(titles).forEach(([k,v])=>{if(k==='purchaseSharing'){out.commercialPolicy='Commercial, Tax & Regulatory';out.entitlementPolicy='Eligibility, Renewal & Fulfilment';}out[k]=v;});return out;
+  };
+  const v47TemplateInputBase=templateFieldInput;
+  templateFieldInput=function(label,f,t){
+    const options={'Currency':['NGN','USD'],'Billing basis':['Prepaid','Postpaid','Hybrid / Both','Per transaction','Not applicable'],'VAT treatment':['VAT Inclusive','VAT Exclusive','Non-VAT','Not applicable'],'Regulatory applicability':['Assessment required','Applicable - approval required','Applicable - notification / filing required','Not applicable','Conditional - evidence required'],'Automatic renewal':['No','Yes'],'Unused entitlement rollover':['No','Yes'],'Fulfilment mode':['Automatic provisioning','USSD activation','App / Web activation','Back-end provisioning','Manual fulfilment','Not applicable']}[label];
+    if(!options&&label!=='Maximum rollover cycles')return v47TemplateInputBase(label,f,t);
+    const key=TEMPLATE_FIELD_KEYS[label],treatment=t[label]||'Editable',reset=treatment==='Reset';
+    const input=label==='Maximum rollover cycles'?`<input type="number" min="1" max="12" step="1" data-tfd="${key}" value="${esc(String(f[key]||''))}" ${reset||f.rolloverAllowed!=='Yes'?'disabled':''}>`:`<select data-tfd="${key}" ${reset?'disabled':''}>${options.map(x=>`<option ${f[key]===x?'selected':''}>${x}</option>`).join('')}</select>`;
+    return `<div class="template-field-row"><div><strong>${esc(label)}</strong><span class="helper">Governed product-policy value.</span></div>${input}<select data-tt="${esc(label)}">${['Inherited','Editable','Reset'].map(x=>`<option ${treatment===x?'selected':''}>${x}</option>`).join('')}</select></div>`;
+  };
+  const v47TemplateChannelsBase=templateChannelsEditor;
+  templateChannelsEditor=function(d){
+    v47NormalizeConfig(d.fields);if(d.fields.division!=='EB')return v47TemplateChannelsBase(d);
+    const f=d.fields,treatment=d.treatments['Channels']||'Editable',channels=v47Channels(f);
+    return `<div class="card"><div class="card-head"><div><h3>Channels</h3><p>Select default publication channels, including Enterprise Portal where applicable.</p></div><select data-tt="Channels" style="width:auto"><option ${treatment==='Inherited'?'selected':''}>Inherited</option><option ${treatment==='Editable'?'selected':''}>Editable</option><option ${treatment==='Reset'?'selected':''}>Reset</option></select></div><div class="checkbox-grid">${channels.map(ch=>`<label class="checkbox-card"><input type="checkbox" data-act="toggleTemplateChannel" data-ch="${esc(ch)}" ${f.channels.includes(ch)?'checked':''} ${treatment==='Reset'?'disabled':''}> ${esc(ch)}</label>`).join('')}</div></div>`;
+  };
+
+  const v47ValidateBase=validateWizard;
+  validateWizard=function(f){
+    v47NormalizeConfig(f);const out=v47ValidateBase(f),cycles=Number(f.rolloverCycles);
+    if(!f.currency)out.errs.push('Currency is mandatory.');
+    if(!f.billingBasis)out.errs.push('Billing basis is mandatory.');
+    if(!f.vatTreatment)out.errs.push('VAT treatment is mandatory.');
+    if(!f.regulatoryApplicability)out.errs.push('Regulatory applicability is mandatory.');
+    if(!isEnterprisePlan(f)){
+      if(!f.autoRenewAllowed)out.errs.push('Automatic renewal treatment is mandatory.');
+      if(!f.rolloverAllowed)out.errs.push('Rollover treatment is mandatory.');
+      if(!f.fulfilmentMode)out.errs.push('Fulfilment mode is mandatory.');
+    }
+    if(f.rolloverAllowed==='Yes'&&(!Number.isInteger(cycles)||cycles<1||cycles>12))out.errs.push('Maximum rollover cycles must be a whole number from 1 to 12.');
+    if(f.dataProductType==='Data Transfer Service'&&f.sharingAllowed!=='Yes')out.errs.push('Data Transfer Service requires Shareable to be Yes.');
+    out.errs=[...new Set(out.errs)];return out;
+  };
+  const v47RiskBase=riskAssessment;
+  riskAssessment=function(f){
+    const rows=v47RiskBase(f),row=rows.find(x=>x.component==='Regulatory impact'),v=f.regulatoryApplicability||'Assessment required';
+    if(row){row.score=v.startsWith('Applicable - approval')?3:v.startsWith('Applicable')||v.startsWith('Conditional')?2:v==='Assessment required'?1:0;row.reason=v;}
+    return rows;
+  };
+  const v47SummaryBase=validationSummaryRows;
+  validationSummaryRows=function(f){
+    const rows=v47SummaryBase(f),labels=new Set(rows.map(r=>r[0])),extra=[['Currency',f.currency],['Billing basis',f.billingBasis],['VAT treatment',f.vatTreatment],['Regulatory applicability',f.regulatoryApplicability],['Automatic renewal',f.autoRenewAllowed],['Rollover',f.rolloverAllowed],...(f.rolloverAllowed==='Yes'?[['Rollover cycles',f.rolloverCycles]]:[]),['Fulfilment mode',f.fulfilmentMode]];
+    return rows.concat(extra.filter(r=>!labels.has(r[0])));
+  };
+
+  const v47TemplateSubmitBase=v38SubmitTemplate;
+  v38SubmitTemplate=function(){
+    const d=ensureTemplateDraft(),currencies=new Set(V47_MONEY_KEYS.map(k=>String(d.fields[k]||'')).filter(v=>v&&v!=='N/A').map(v=>v.includes('$')?'USD':'NGN'));
+    if(currencies.size>1){toast('A template cannot mix NGN and USD monetary fields. Choose one product currency.');return;}
+    d.fields.currency=[...currencies][0]||d.fields.currency||'NGN';return v47TemplateSubmitBase();
+  };
+
+  function v47PolicyDetails(f){
+    return `${detailSection('Commercial, Tax & Regulatory','Canonical policy used by approval, testing and reconciliation.',detailKV([['Currency',f.currency],['Billing basis',f.billingBasis],['VAT treatment',f.vatTreatment],['Regulatory applicability',f.regulatoryApplicability]]))}${detailSection('Eligibility, Renewal & Fulfilment','Customer qualification and entitlement lifecycle.',detailKV([['Eligibility',f.eligibility],['Automatic renewal',f.autoRenewAllowed],['Rollover',f.rolloverAllowed],['Maximum rollover cycles',f.rolloverAllowed==='Yes'?f.rolloverCycles:'Not applicable'],['Fulfilment mode',f.fulfilmentMode]]))}`;
+  }
+  productConfigSnapshot=function(p){
+    const f=v47NormalizeConfig(productDisplayFields(p)),base=detailSection('Current governed snapshot','Latest approved/versioned values observed by PLM.',detailKV([['Plan/Product Name',p.name],['Category',p.cat],['Sub-Category',p.sub],['Version',p.ver],['Price',p.price],['Service Class',f.serviceClass],['Effective date',p.eff],['Channels',f.channels]]));
+    let specific='';
+    if(isDataProduct(f))specific=detailSection('Data configuration','Product-family fields from the approved Data configuration.',detailKV([['Data Product Type',f.dataProductType],['Product ID',f.dataProductId],['Plan class / duration',f.dataPlanClass],['Data volume',f.dataVolume],['Data price',f.dataPrice],['Data validity',f.dataValidity],['Service / app scope',f.dataServiceScope],['Service / app details',f.dataServiceDetails],['SIM population band',f.simPopulationBand],['APN required',f.apnRequired],['APN name',f.apnName],['Transfer band',f.transferBand],['Transfer rules',f.transferRules]]));
+    else if(isEnterprisePlan(f))specific=renderProductDetailTab(p,'enterprise');
+    else specific=renderProductDetailTab(p,'main');
+    const sharing=renderProductDetailTab(p,'sharing');return `<div class="stack">${base}${v47PolicyDetails(f)}${specific}${sharing}</div>`;
+  };
+
+  /* Business approvals use the server command whenever module persistence is
+     connected. Local-file QA retains the deterministic in-browser fallback. */
+  document.addEventListener('click',async e=>{
+    const b=e.target.closest('[data-act]');if(!b||!['doApprove','doReject','confirmReturn'].includes(b.dataset.act)||!PLM_BACKEND.ready||!(AUTH.account&&AUTH.account.dynamic))return;
+    const r=DATA.requests.find(x=>x.id===pendingActionId),row=v7PendingApprovalForActiveRole(r);if(!r||!row)return;
+    e.preventDefault();e.stopImmediatePropagation();
+    const action=b.dataset.act,decision=action==='doApprove'?'Approved':action==='doReject'?'Rejected':'Returned';
+    const selector=action==='doApprove'?'#ap-comment':action==='doReject'?'#rj-reason':'#rc-reason',note=(document.querySelector(selector)?.value||'').trim();
+    if(!note){toast(action==='doApprove'?'Approval comment is required.':action==='doReject'?'A reason for rejection is required.':'State what needs to change before returning this request.');return;}
+    setBusy(b,'Recording…');
+    try{
+      const res=await fetch('/api/v2/requests/'+encodeURIComponent(r.id)+'/approval-decisions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({role:v7ActiveRoleName(),actor:AUTH.account.name,decision,note})});
+      if(!res.ok)throw new Error((await res.text())||('HTTP '+res.status));
+      const payload=await res.json(),idx=DATA.requests.findIndex(x=>x.id===r.id);DATA.requests[idx]=payload.request;
+      const updated=DATA.requests[idx],allApproved=updated.status==='Approved';if(allApproved&&requestCanEnterTesting(updated))ensureReleasePipelineForRequest(updated);
+      const local=PLM_BACKEND.modules.requests;if(local){local.revision=payload.revision||local.revision;PLM_BACKEND.hashes.requests=plmHashValue(plmModulePayload('requests'));}
+      appendAudit(AUTH.account.name,v7ActiveRoleName(),decision==='Approved'?'Approval recorded':decision==='Rejected'?'Request rejected':'Returned for correction',updated.id,decision==='Approved'?'ok':'bad','Approval',note);
+      closeModal();render();toast(allApproved?updated.id+' fully approved.':decision+' for '+updated.id+'.');
+    }catch(err){b.disabled=false;b.textContent=decision;toast('Decision was not saved: '+err.message);}
+  },true);
+
+  document.addEventListener('click',async e=>{
+    const b=e.target.closest('[data-act="v37WithdrawConfirm"]');
+    if(!b||!PLM_BACKEND.ready||!(AUTH.account&&AUTH.account.dynamic))return;
+    const r=DATA.requests.find(x=>x.id===b.dataset.id),reason=(document.getElementById('v37-withdraw-reason')?.value||'').trim();
+    if(!r||!reason){e.preventDefault();e.stopImmediatePropagation();toast('Withdrawal reason is required.');return;}
+    e.preventDefault();e.stopImmediatePropagation();setBusy(b,'Withdrawing…');
+    try{
+      const res=await fetch('/api/v2/requests/'+encodeURIComponent(r.id)+'/withdrawal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({actor:AUTH.account.name,reason})});
+      if(!res.ok)throw new Error((await res.text())||('HTTP '+res.status));
+      const payload=await res.json(),idx=DATA.requests.findIndex(x=>x.id===r.id);DATA.requests[idx]=payload.request;
+      const P=DATA.releasePipeline&&DATA.releasePipeline[r.id];if(P&&!P.state.deployed)P.state.closed=true;
+      const local=PLM_BACKEND.modules.requests;if(local){local.revision=payload.revision||local.revision;PLM_BACKEND.hashes.requests=plmHashValue(plmModulePayload('requests'));}
+      appendAudit(AUTH.account.name,'Product Manager','Submitted request withdrawn',r.id,'warnd','Lifecycle',reason);
+      closeModal();render();toast(r.id+' withdrawn.');
+    }catch(err){b.disabled=false;b.textContent='Withdraw Request';toast('Withdrawal was not saved: '+err.message);}
+  },true);
+
+  /* Sequential approval is now the sole supported business-decision mode. */
+  (DATA.approvalWorkflowV37||[]).forEach(w=>(w.stages||[]).forEach(s=>{if(/Business/i.test(s.name))s.mode='Sequential';}));
+  const v47ApprovalModalBase=v37ApprovalStageModal;
+  v37ApprovalStageModal=function(tier,stageId){v47ApprovalModalBase(tier,stageId);const mode=document.getElementById('v37-ap-mode');if(mode){mode.innerHTML='<option selected>Sequential</option>';mode.disabled=true;}};
+
+  v47NormalizeAll();
 })();
 </script>
 

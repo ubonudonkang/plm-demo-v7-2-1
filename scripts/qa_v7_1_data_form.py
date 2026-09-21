@@ -1,4 +1,4 @@
-import asyncio, json, pathlib, sqlite3
+import asyncio, json, os, pathlib, sqlite3
 from playwright.async_api import async_playwright
 
 ROOT=pathlib.Path(__file__).resolve().parents[1]
@@ -16,7 +16,8 @@ def persisted_admin():
 async def main():
     admin=persisted_admin()
     async with async_playwright() as p:
-        browser=await p.chromium.launch(headless=True,executable_path='/usr/bin/chromium',args=['--no-sandbox','--disable-dev-shm-usage'])
+        launch={'headless':True,'channel':'msedge'} if os.name=='nt' else {'headless':True,'executable_path':'/usr/bin/chromium','args':['--no-sandbox','--disable-dev-shm-usage']}
+        browser=await p.chromium.launch(**launch)
         page=await browser.new_page(viewport={'width':1500,'height':1050})
         errors=[]; page.on('pageerror',lambda e:errors.append(str(e)))
         await page.set_content(HTML,wait_until='domcontentloaded'); await page.wait_for_timeout(120)
@@ -53,8 +54,9 @@ async def main():
         await page.wait_for_timeout(60)
         main=page.locator('#main-content')
         txt=await main.inner_text()
-        for label in ['Included voice minutes','YouTube night data allowance','Other bundled benefits','Data transfer / gifting']:
+        for label in ['Included voice minutes','YouTube night data allowance','Other bundled benefits']:
             assert label in txt, label
+        assert 'Data transfer / gifting' not in txt
         qty_sel='[data-v45-qty="dataVolume"]' if await page.locator('[data-v45-qty="dataVolume"]').count() else '[data-v44-qty="dataVolume"]'
         unit_sel='[data-v45-unit="dataVolume"]' if await page.locator('[data-v45-unit="dataVolume"]').count() else '[data-v44-unit="dataVolume"]'
         assert await page.locator(qty_sel).count()==1
@@ -67,13 +69,16 @@ async def main():
         stored=await page.evaluate("state.wizard.fields.dataVolume")
         assert stored=='25 GB', stored
 
-        # Transferability becomes structured instead of vague free text.
-        await page.select_option('[data-f="dataTransferability"]','Conditional')
+        # Sharing is governed once at product level instead of inside Data Core.
+        await page.evaluate("state.wizard.section='purchaseSharing';render()")
+        await page.select_option('[data-f="sharingAllowed"]','Yes')
         await page.wait_for_timeout(30)
-        assert await page.locator('[data-f="dataAdditionalInfo"]').count()==1
+        assert await page.locator('[data-f="shareablePercentage"]').count()==1
+        await page.fill('[data-f="shareablePercentage"]','20')
+        assert not await page.evaluate("validateWizard(state.wizard.fields).errs.filter(x=>/shareable percentage/i.test(x))")
 
         if errors: raise AssertionError(errors)
-        print(json.dumps({'PASS':True,'data_price_uses_approved_band':'PASS','out_of_band_rejected':'PASS','data_volume_unit_selector':['MB','GB','TB'],'clarified_fields':'PASS','transferability_structured':'PASS','page_errors':0},indent=2))
+        print(json.dumps({'PASS':True,'data_price_uses_approved_band':'PASS','out_of_band_rejected':'PASS','data_volume_unit_selector':['MB','GB','TB'],'clarified_fields':'PASS','purchase_sharing_structured':'PASS','page_errors':0},indent=2))
         await browser.close()
 
 if __name__=='__main__': asyncio.run(main())
