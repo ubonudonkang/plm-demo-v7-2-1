@@ -853,6 +853,7 @@ button.journey-chip:hover{background:#f6f7f9;border-color:#c9cdd4}
   width:min(420px,100%);background:var(--card-background);border:1px solid var(--border);
   border-radius:var(--radius-card);box-shadow:var(--shadow-modal);padding:var(--space-8) var(--space-7);
 }
+.auth-card.auth-card-accounts{width:min(560px,100%)}
 .auth-card h1{font-size:21px;font-weight:700;margin-bottom:6px}
 .auth-card .auth-sub{color:var(--muted-text);font-size:13px;margin-bottom:var(--space-6);line-height:1.55}
 .auth-center{text-align:center}
@@ -906,10 +907,11 @@ button.journey-chip:hover{background:#f6f7f9;border-color:#c9cdd4}
   display:grid;place-items:center;font-weight:900;font-size:12.5px;flex:none;
 }
 .acct-row.denied .acct-ava{background:#f2f4f7;color:#98a2b3}
-.acct-info{min-width:0;line-height:1.4}
+.acct-info{min-width:0;line-height:1.4;flex:1}
 .acct-name{font-weight:700;font-size:13.5px}
-.acct-email{color:var(--muted-text);font-size:12px}
-.acct-role{margin-left:auto;flex:none;padding-left:10px}
+.acct-email{color:var(--muted-text);font-size:12px;overflow-wrap:anywhere}
+.acct-role{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:6px;flex:0 1 220px;min-width:0;padding-left:10px}
+.acct-role .pill{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 .auth-icon-badge{
   width:50px;height:50px;border-radius:50%;display:grid;place-items:center;
@@ -922,6 +924,13 @@ button.journey-chip:hover{background:#f6f7f9;border-color:#c9cdd4}
   .auth-shell{grid-template-columns:1fr}
   .auth-brand{padding:var(--space-6) var(--space-6) var(--space-7)}
   .auth-points{display:none}
+}
+@media (max-width:560px){
+  .auth-stage{padding:var(--space-3)}
+  .auth-card{padding:var(--space-6) var(--space-4)}
+  .acct-row{align-items:flex-start;flex-wrap:wrap}
+  .acct-info{flex:1 1 calc(100% - 50px)}
+  .acct-role{flex:1 1 100%;justify-content:flex-start;margin-left:50px;padding-left:0}
 }
 /* ---------- Product Requests v18 ---------- */
 .request-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
@@ -1554,7 +1563,7 @@ const NAV = [
       const prod=releases.filter(P=>P&&P.state&&P.state.testsAccepted&&!P.state.postTestApproved&&!P.state.closed).length;
       return business+uat+prod+(DATA.templates||[]).filter(t=>t.state==="Pending Certification").length;
     }},
-    {id:"testing",     ico:"⚑", label:"Testing & Release", roles:["po","ba","rel","test"], count:()=>Object.values(DATA.releasePipeline||{}).filter(P=>P&&P.state&&!P.state.closed).length},
+    {id:"testing",     ico:"⚑", label:"Testing & Release", roles:["po","ba","rel","test"], count:()=>{if(typeof ensureApprovedRequestsInTestingQueue==="function")ensureApprovedRequestsInTestingQueue();return Object.values(DATA.releasePipeline||{}).filter(P=>P&&P.state&&!P.state.closed).length;}},
     {id:"recon",       ico:"⇌", label:"Reconciliation & Monitoring", roles:["po","ba","rel"], count:()=>Object.values(DATA.releasePipeline||{}).filter(P=>P&&P.state&&P.state.deployed&&!P.state.closed).length},
     {id:"exceptions",  ico:"⚠", label:"Exceptions & Rollback", roles:["po","ba","rel"], count:()=>(DATA.exceptions||[]).filter(exceptionBlocks).length}
   ]},
@@ -2788,28 +2797,29 @@ function requestTypeLabel(r){
 }
 function requestRegister(){
   const q = state.q.toLowerCase();
-  const view = ["drafts","inprogress","returned","complete","cancelled"].includes(state.tab)?state.tab:"drafts";
+  const view = ["all","drafts","inprogress","returned","complete","cancelled"].includes(state.tab)?state.tab:"all";
   const fType = fval("requests","type","All types");
   const fTier = fval("requests","tier","All risk tiers");
   const tierMap = {"Tier 1 Low":1,"Tier 2 Medium":2,"Tier 3 High":3,"Tier 4 Critical":4};
-  const viewMatch=r=>view==="drafts"?r.status==="Draft":view==="returned"?r.status==="Returned for Correction":view==="complete"?["Complete","Rejected","Rolled Back"].includes(r.status):view==="cancelled"?r.status==="Cancelled":!["Draft","Returned for Correction","Complete","Rejected","Rolled Back","Cancelled"].includes(r.status);
+  const isReturned=r=>["Returned for Correction","Returned for Changes"].includes(r.status);
+  const viewMatch=r=>view==="all"?true:view==="drafts"?r.status==="Draft":view==="returned"?isReturned(r):view==="complete"?["Complete","Rejected","Rolled Back"].includes(r.status):view==="cancelled"?r.status==="Cancelled":!["Draft","Returned for Correction","Returned for Changes","Complete","Rejected","Rolled Back","Cancelled"].includes(r.status);
   const rows = (DATA.requests||[]).filter(r => viewMatch(r) && (!q || (r.id+r.title+r.type+r.owner+r.target).toLowerCase().includes(q)) && (fType==="All types" || requestTypeLabel(r)===fType) && (fTier==="All risk tiers" || r.tier===tierMap[fTier]));
   const typeOpts = ["All types","New Product","Clone Product","Modify Product","Suspend Product","Retire Product","Bulk Change","Reactivate Product"];
   const tierOpts = ["All risk tiers","Tier 1 Low","Tier 2 Medium","Tier 3 High","Tier 4 Critical"];
   const count=s=>(DATA.requests||[]).filter(s).length;
   const rowActions=r=>{
     if(r.status==="Draft") return `<div class="draft-actions"><button class="btn sm black" data-act="resumeDraft" data-id="${r.id}">Resume</button><button class="btn sm" data-act="duplicateDraft" data-id="${r.id}">Duplicate</button><button class="btn sm" data-act="cancelDraft" data-id="${r.id}">Cancel</button><button class="btn sm danger" data-act="deleteDraft" data-id="${r.id}">Delete</button></div>`;
-    if(r.status==="Returned for Correction") return `<button class="btn sm mtn" data-act="resumeCorrection" data-id="${r.id}">Edit & resubmit</button>`;
+    if(isReturned(r)) return `<button class="btn sm mtn" data-act="resumeCorrection" data-id="${r.id}">Edit & resubmit</button>`;
     return `<button class="btn sm black" data-act="req" data-id="${r.id}">Open</button>`;
   };
   return pageHead("Product Requests","Track and continue lifecycle requests already started from Product Catalogue or an individual Plan/Product.",``)
   + `<div class="request-kpis">
       <div class="request-kpi"><span>My drafts</span><strong>${count(r=>r.status==="Draft")}</strong></div>
-      <div class="request-kpi"><span>In progress</span><strong>${count(r=>!["Draft","Returned for Correction","Complete","Rejected","Cancelled"].includes(r.status))}</strong></div>
-      <div class="request-kpi"><span>Returned</span><strong>${count(r=>r.status==="Returned for Correction")}</strong></div>
+      <div class="request-kpi"><span>In progress</span><strong>${count(r=>!["Draft","Returned for Correction","Returned for Changes","Complete","Rejected","Cancelled"].includes(r.status))}</strong></div>
+      <div class="request-kpi"><span>Returned</span><strong>${count(isReturned)}</strong></div>
       <div class="request-kpi"><span>Completed</span><strong>${count(r=>["Complete","Rejected","Rolled Back"].includes(r.status))}</strong></div>
     </div>
-    <div class="tabs" role="tablist">${[["drafts","My Drafts"],["inprogress","In Progress"],["returned","Returned for Changes"],["complete","Completed"],["cancelled","Cancelled"]].map(([k,l])=>`<button class="tab" data-act="tab" data-tab="${k}" aria-selected="${view===k}">${l}</button>`).join("")}</div>
+    <div class="tabs" role="tablist" aria-label="Request status filters">${[["all","All Status"],["drafts","My Drafts"],["inprogress","In Progress"],["returned","Returned for Changes"],["complete","Completed"],["cancelled","Cancelled"]].map(([k,l])=>`<button class="tab" data-act="tab" data-tab="${k}" aria-selected="${view===k}">${l}</button>`).join("")}</div>
     <div class="card flush">
       <div class="filters"><select data-filter="type">${typeOpts.map(o=>`<option ${fsel(fType,o)}>${esc(o)}</option>`).join("")}</select><select data-filter="tier">${tierOpts.map(o=>`<option ${fsel(fTier,o)}>${esc(o)}</option>`).join("")}</select><span class="spacer small muted">${rows.length} request${rows.length===1?"":"s"} in this view</span></div>
       <div class="table-wrap" style="border:0;border-radius:0">${rows.length?`<table><thead><tr><th>Request</th><th>Action</th><th>Plan/Product</th><th>Risk</th><th>Status</th><th>Last activity</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr><td><div class="id">${esc(r.id)}</div><div class="sub">${esc(r.title)}</div></td><td>${esc(r.type)}</td><td class="small">${esc(r.target)}</td><td>${r.tier?tierChip(r.tier):'<span class="small muted">Not scored</span>'}</td><td>${pill(r.status)}</td><td class="small muted">${esc(r.submitted||"—")}</td><td class="actions">${rowActions(r)}</td></tr>`).join("")}</tbody></table>`:emptyState("No requests in this view.",view==="drafts"?"Drafts created from Product Catalogue or individual Plan/Product actions will appear here.":"Choose another request view.")}</div>
@@ -3926,6 +3936,7 @@ function routeForTier(t){
 function requestDetail(id, approvalMode){
   const r = DATA.requests.find(x=>x.id===id);
   if (!r) return emptyState("Request not found.","Return to the register and try again.");
+  if(typeof v7PrepareSequentialApprovals==="function") v7PrepareSequentialApprovals(r);
   const backRoute = approvalMode ? "workflow" : "requests";
   const backLabel = approvalMode ? "Workflow & Approvals" : "Product Requests";
   const locked = !["Draft","Returned for Correction"].includes(r.status);
@@ -3995,7 +4006,7 @@ function requestDetail(id, approvalMode){
         </div>` : ""}
 
         <div class="card">
-          <div class="card-head"><div><h3>Approval route</h3><p>Generated from the risk tier. It cannot be edited, shortened, or redirected.</p></div></div>
+          <div class="card-head"><div><h3>Approval route</h3><p>Generated from the risk tier. Decisions unlock one at a time in the order shown.</p></div></div>
           ${r.approvals.length ? `<div class="table-wrap"><table>
             <thead><tr><th>Role</th><th>Approver</th><th>Decision</th><th>Recorded</th></tr></thead>
             <tbody>${r.approvals.map(a=>`<tr>
@@ -4609,6 +4620,12 @@ function ensureReleasePipelineForRequest(r){
     {id:"TC-"+r.id.slice(-4)+"-04",scen:"Channel and downstream acknowledgement",exp:"All required targets respond",act:"Not executed",res:"Not run"}
   ],defects:[],testOwner:"Ifeoma Okeke",releaseOwner:"Emeka Obi",deployTargets:["Product Catalogue","Charging System","Billing","Provisioning (MSAP)","CIS","CRM","Notification Gateway"].map(sys=>({sys,state:"Not Started",ts:"—",resp:"—"})),state:{preTestApproved:false,testsAccepted:false,postTestApproved:false,deployed:false,acknowledged:false,reconciled:false,monitoring:false,closed:false}};
 }
+function requestCanEnterTesting(r){
+  return !!(r&&["create","clone","modify"].includes(r.typeKey)&&["Approved","Testing"].includes(r.status));
+}
+function ensureApprovedRequestsInTestingQueue(){
+  (DATA.requests||[]).filter(requestCanEnterTesting).forEach(ensureReleasePipelineForRequest);
+}
 function updateGate(r,label,stateVal,msg){ const g=(r.gates||[]).find(x=>x[1]===label); if(g){g[2]=stateVal;g[3]=msg;} }
 function finalizeProductRequest(r){
   if(!r||!["create","clone","modify"].includes(r.typeKey)||r.productFinalized) return;
@@ -4634,7 +4651,8 @@ function requestProcessPanel(r){
   if(["create","clone","modify"].includes(r.typeKey)){
     if(["Complete","Rolled Back"].includes(r.status)) return `<div class="card" style="margin-bottom:16px"><div class="card-head"><div><h3>${r.status==="Rolled Back"?"Release rolled back":"Lifecycle request completed"}</h3><p>${r.status==="Rolled Back"?"The failed Production change was restored to the last approved version, reconciled and closed with immutable recovery evidence.":"Approval, testing, deployment, reconciliation and monitoring are closed with immutable evidence."}</p></div>${pill(r.status)}</div>${r.resultProductId?`<button class="btn mtn" data-act="prod" data-id="${esc(r.resultProductId)}">Open resulting Plan/Product</button>`:""}</div>`;
     const inPipe=!!DATA.releasePipeline[r.id];
-    return `<div class="card" style="margin-bottom:16px"><div class="card-head"><div><h3>Next stage</h3><p>Business approval is complete. Continue with UAT deployment and testing, then obtain Production release approval before promotion.</p></div></div><button class="btn mtn" data-act="beginRelease" data-id="${r.id}">${inPipe?"Open Testing & Release":"Begin Testing & Release"}</button></div>`;
+    const isTestAnalyst=(typeof v7ActiveRoleName==="function"?v7ActiveRoleName():"")==="Test Analyst";
+    return `<div class="card" style="margin-bottom:16px"><div class="card-head"><div><h3>Next stage</h3><p>Business approval is complete. Continue with UAT deployment and testing, then obtain Production release approval before promotion.</p></div></div>${isTestAnalyst?`<button class="btn mtn" data-act="planRequestTests" data-id="${r.id}">Add or Manage Test Cases</button>`:`<button class="btn mtn" data-act="beginRelease" data-id="${r.id}">${inPipe?"Open Testing & Release":"Begin Testing & Release"}</button>`}</div>`;
   }
   if(r.typeKey==="bulk"){
     const kids=r.bulkChildren||[]; const terminal=kids.filter(x=>x.state==="Implemented"&&x.reconciled||x.state==="Rolled Back"&&x.reconciled||x.state==="Exception Resolved").length;
@@ -4896,6 +4914,9 @@ function testingStage(req,P){
 function releaseQueueUatStatus(P){const s=P.state||{};if(s.uatDeployed)return "Deployed";if(s.preTestApproved)return "Approved / not deployed";return "Awaiting approval";}
 function releaseQueueProdStatus(P){const s=P.state||{};if(s.deployed)return "Deployed";if(s.postTestApproved)return "Approved";if(s.testsAccepted)return "Awaiting approval";return "Not started";}
 function releaseQueue(){
+  /* Approved product changes enter the queue automatically. This also
+     backfills approved records created before this hand-off existed. */
+  ensureApprovedRequestsInTestingQueue();
   Object.entries(DATA.releasePipeline||{}).forEach(([id,P])=>normalizeReleaseTests(P,DATA.requests.find(r=>r.id===id)));
   const records=Object.entries(DATA.releasePipeline||{}).map(([id,P])=>({id,P,req:DATA.requests.find(r=>r.id===id)})).filter(x=>x.req);
   const active=records.filter(x=>!x.P.state.closed), testing=records.filter(x=>testingStage(x.req,x.P)==="UAT Testing"),failed=records.filter(x=>{const s=testSummary(x.P);return s.fail+s.blocked>0;}),prod=records.filter(x=>testingStage(x.req,x.P)==="Awaiting Production Approval"),ready=records.filter(x=>testingStage(x.req,x.P)==="Ready for Production");
@@ -4961,6 +4982,15 @@ SCREENS.testing=()=>{
   const req=DATA.requests.find(x=>x.id===state.releaseRequest),P=DATA.releasePipeline[state.releaseRequest];
   if(!req||!P){state.releaseRequest=null;state.sub=null;return releaseQueue();}
   return testingWorkspace(req,P);
+};
+const releaseQueueWithTestPlanningEntry=releaseQueue;
+releaseQueue=function(){
+  const html=releaseQueueWithTestPlanningEntry();
+  if((typeof v7ActiveRoleName==="function"?v7ActiveRoleName():"")!=="Test Analyst") return html;
+  return html.replace(/<button class="btn sm black" data-act="openReleaseWorkspace" data-id="([^"]+)">Open<\/button>/g,(button,id)=>{
+    const locked=!!(DATA.releasePipeline[id]&&DATA.releasePipeline[id].state.preTestApproved);
+    return `<button class="btn sm black" data-act="openReleaseWorkspace" data-id="${id}" data-tab="cases">${locked?"Review Test Cases":"Plan Test Cases"}</button>`;
+  });
 };
 
 /* Candidate decisions create or update real records. */
@@ -5242,7 +5272,9 @@ document.addEventListener("click", e => {
     case "runBulkWave": { const r=DATA.requests.find(x=>x.id===b.dataset.id);if(!r)break;const kids=r.bulkChildren||[],pending=kids.filter(x=>x.state==="Pending");if(!pending.length){r.status="Monitoring";updateGate(r,"Deployment waves","pass","All waves completed");updateGate(r,"Per-product reconciliation","pass","Every child record reconciled");render();toast("All child records are reconciled. Monitoring can now close.");break;}const wave=(r.bulkCurrentWave||0)+1,size=wave===1?Number(r.requestData.bulkWave1||5):Number(r.requestData.bulkWaveSize||50);pending.slice(0,size).forEach(k=>{k.wave=wave;k.state="Implemented";k.reconciled=true;});r.bulkCurrentWave=wave;appendAudit(AUTH.account?AUTH.account.name:r.owner,typeof v7ActiveRoleName==='function'?v7ActiveRoleName():'Release Manager',"Bulk deployment wave completed",r.id,"ok","Deployment",`Wave ${wave}: ${Math.min(size,pending.length)} child records implemented and reconciled.`);if(kids.every(k=>k.state==="Implemented"&&k.reconciled)){r.status="Monitoring";updateGate(r,"Deployment waves","pass",wave+" wave(s) completed");updateGate(r,"Per-product reconciliation","pass","Every child record reconciled");}render();toast(`Wave ${wave} completed.`); } break;
     case "closeBulk": { const r=DATA.requests.find(x=>x.id===b.dataset.id);if(!r)break;const kids=r.bulkChildren||[];const ok=kids.length&&kids.every(k=>(k.state==="Implemented"&&k.reconciled)||(k.state==="Rolled Back"&&k.reconciled)||k.state==="Exception Resolved");if(!ok){toast("Closure is blocked until every child record reaches an accepted terminal state.");break;}r.status="Complete";updateGate(r,"Monitoring closure","pass","Bulk monitoring closed with all child records terminal");appendAudit(AUTH.account?AUTH.account.name:r.owner,typeof v7ActiveRoleName==='function'?v7ActiveRoleName():'Product Owner',"Bulk request closed",r.id,"ok","Monitoring","All child records implemented/reconciled, rolled back/reconciled, or exception-resolved.");render();toast("Bulk request closed with immutable child-level evidence."); } break;
     case "beginRelease":
-      { const r=DATA.requests.find(x=>x.id===b.dataset.id); if(!r)break; ensureReleasePipelineForRequest(r); state.releaseRequest=r.id; r.status="Testing"; updateGate(r,"Test evidence","active","Testing & Release opened"); go("testing",null,"uat"); } break;
+      { const r=DATA.requests.find(x=>x.id===b.dataset.id); if(!r)break; ensureReleasePipelineForRequest(r); state.releaseRequest=r.id; r.status="Testing"; updateGate(r,"Test evidence","active","Testing & Release opened"); go("testing","release","uat"); } break;
+    case "planRequestTests":
+      { const r=DATA.requests.find(x=>x.id===b.dataset.id); if(!r||!requestCanEnterTesting(r))break; ensureReleasePipelineForRequest(r); state.releaseRequest=r.id; r.status="Testing"; updateGate(r,"Test evidence","active","Test planning opened by the Test Analyst"); go("testing","release","cases"); } break;
     case "executeSuspend":
       { const r=DATA.requests.find(x=>x.id===b.dataset.id),p=productByTarget(r&&r.target); if(!r||!p)break; p.status="Suspended"; r.status="Monitoring"; updateGate(r,"Execute suspension","pass","Suspension executed"); updateGate(r,"Channel/provisioning acknowledgement","pass","Target channels and provisioning acknowledged suspension"); updateGate(r,"Post-suspension reconciliation","pass","Expected suspended state matches downstream systems"); updateGate(r,"Monitoring / review window","active","Monitoring open"); appendAudit(AUTH.account?AUTH.account.name:r.owner,typeof v7ActiveRoleName==='function'?v7ActiveRoleName():'Product Governance',"Product suspension executed",r.id,"now","Lifecycle","Plan/Product status changed to Suspended after approval."); render(); toast(p.name+" is now Suspended. Monitoring remains open."); } break;
     case "closeSuspend":
@@ -5459,7 +5491,7 @@ document.addEventListener("click", e => {
           const orig = w.resubmitOf ? DATA.requests.find(x=>x.id===w.resubmitOf) : null;
           const ver = orig ? "v" + ((parseFloat((orig.ver||"v1.0").replace("v",""))||1)+0.1).toFixed(1) : "v1.0";
           const targetLabel = w.target||w.fields.source||w.fields.name||w.fields.population||"Defined population";
-          const route=approvalRouteForRequest(w,tier); DATA.requests.unshift({id,type:t.n,typeKey:w.type,target:targetLabel,title:t.n+", "+targetLabel,owner,status:"Pending Approval",tier,ver,submitted:nowStamp(),sla:"Within SLA",slaBad:false,summary:w.fields.just||t.d,diffs:[],approvals:route.map(role=>({role,who:role,state:"Pending",ts:"—"})),gates:requestGatesForType(w.type,tier,route.length),requestData:JSON.parse(JSON.stringify(w.fields))});
+          const route=approvalRouteForRequest(w,tier); DATA.requests.unshift({id,type:t.n,typeKey:w.type,target:targetLabel,title:t.n+", "+targetLabel,owner,status:"Pending Approval",tier,ver,submitted:nowStamp(),sla:"Within SLA",slaBad:false,summary:w.fields.just||t.d,diffs:[],approvals:route.map((role,index)=>({role,who:role,state:index===0?"Pending":"Not started",ts:"—"})),gates:requestGatesForType(w.type,tier,route.length),requestData:JSON.parse(JSON.stringify(w.fields))});
           appendAudit(owner,"Product Owner","Request submitted, version locked",id,"now","Submission", orig ? ("Corrected resubmission of "+orig.id+". Approval route generated.") : "Approval route generated.");
           if (orig){ orig.resubmittedAs = id; }
           state.wizard.step=5; state.wizard.submittedId=id; render(); toast(id+" submitted and visible in Workflow & Approvals.");
@@ -5615,12 +5647,16 @@ document.addEventListener("click", e => {
                    || r.approvals.find(a=>a.state==="Pending");
           if (row){ row.state="Approved"; row.ts=nowStamp(); if (comment) row.note=comment; }
           const allApproved = r.approvals.length>0 && r.approvals.every(a=>a.state==="Approved");
-          if (allApproved){ r.status="Approved"; r.slaBad=false; r.sla=["suspend","retire"].includes(r.typeKey)?"Ready for execution":"Ready for testing"; updateGate(r,"Complete approval","pass",r.approvals.length+" of "+r.approvals.length+" complete"); }
+          if (allApproved){
+            r.status="Approved"; r.slaBad=false; r.sla=["suspend","retire"].includes(r.typeKey)?"Ready for execution":"Ready for testing";
+            updateGate(r,"Complete approval","pass",r.approvals.length+" of "+r.approvals.length+" complete");
+            if(requestCanEnterTesting(r)) ensureReleasePipelineForRequest(r);
+          }
           const actorRole = $("#roleSel").selectedOptions[0].text;
           const actorName = AUTH.account ? AUTH.account.name : "Mercy Andrew";
           appendAudit(actorName, actorRole, "Approval recorded", r.id, "ok", "Approval", comment || (row?("Approved as "+row.role+"."):"Approval recorded."));
           render();
-          const remaining = r.approvals.filter(a=>a.state==="Pending").length;
+          const remaining = r.approvals.filter(a=>a.state!=="Approved").length;
           toast(allApproved ? (r.id+" fully approved. "+(["suspend","retire"].includes(r.typeKey)?"Lifecycle execution can now begin.":"Version "+r.ver+" is ready for testing.")) : ("Approval recorded for "+r.id+". "+remaining+" decision"+(remaining===1?"":"s")+" remain."));
         }, 600);
       }
@@ -5652,9 +5688,10 @@ document.addEventListener("click", e => {
         setBusy(b, "Rejecting…");
         setTimeout(()=>{
           closeModal();
-          r.status = "Rejected"; r.rejectionReason = reason; r.slaBad = false; r.sla = "—";
           const row = (typeof v7PendingApprovalForActiveRole==="function" ? v7PendingApprovalForActiveRole(r) : null) || r.approvals.find(a=>a.state==="Pending") || r.approvals[r.approvals.length-1];
+          r.status = "Rejected"; r.rejectionReason = reason; r.slaBad = false; r.sla = "—";
           if (row){ row.state="Rejected"; row.ts=nowStamp(); row.note=reason; }
+          r.approvals.filter(a=>a!==row&&["Pending","Not started","Not Started"].includes(a.state)).forEach(a=>{a.state="Invalidated";a.ts=nowStamp();});
           const actorRole = $("#roleSel").selectedOptions[0].text;
           const actorName = AUTH.account ? AUTH.account.name : "Mercy Andrew";
           appendAudit(actorName, actorRole, "Request rejected", r.id, "bad", "Approval", reason);
@@ -5683,8 +5720,10 @@ document.addEventListener("click", e => {
         setBusy(b, "Returning…");
         setTimeout(()=>{
           closeModal();
+          const current=(typeof v7PendingApprovalForActiveRole==="function"?v7PendingApprovalForActiveRole(r):null)||r.approvals.find(a=>a.state==="Pending");
           r.status = "Returned for Correction"; r.correctionNote = reason; r.slaBad = false; r.sla = "Paused";
-          r.approvals.forEach(a=>{ if (a.state==="Pending"){ a.state="Returned"; a.ts=nowStamp(); } });
+          if(current){current.state="Returned";current.ts=nowStamp();current.note=reason;}
+          r.approvals.filter(a=>a!==current&&["Pending","Not started","Not Started"].includes(a.state)).forEach(a=>{a.state="Invalidated";a.ts=nowStamp();});
           const actorRole = $("#roleSel").selectedOptions[0].text;
           const actorName = AUTH.account ? AUTH.account.name : "Mercy Andrew";
           appendAudit(actorName, actorRole, "Returned for correction", r.id, "warnd", "Approval", reason);
@@ -6711,7 +6750,15 @@ function generateRiskBasedTestPack(rid){
 
 document.addEventListener("click",e=>{
   const b=e.target.closest("[data-act]");if(!b)return;const a=b.dataset.act;
-  if(a==="openReleaseWorkspace"){state.releaseRequest=b.dataset.id;go("testing","release","overview");}
+  if(a==="openReleaseWorkspace"){
+    const r=DATA.requests.find(x=>x.id===b.dataset.id);
+    if(r&&r.status==="Approved"){
+      r.status="Testing";
+      updateGate(r,"Test evidence","active","Test planning opened by the Test Analyst");
+    }
+    state.releaseRequest=b.dataset.id;
+    go("testing","release",b.dataset.tab||"overview");
+  }
   else if(a==="backReleaseQueue"){state.releaseRequest=null;go("testing");}
   else if(a==="testingPage"){state.testingPage=Math.max(1,(state.testingPage||1)+(b.dataset.dir==="next"?1:-1));render();window.scrollTo(0,0);}
   else if(a==="viewTestCase") openTestCaseDefinition(b.dataset.rid,b.dataset.id);
@@ -7369,8 +7416,8 @@ function v33ValidateUserAccess(data,existing){
 }
 
 /* Dynamic SSO chooser: provisioned users now come from Administration. */
-function v33AuthUsers(){ensureUserDirectoryV33();return (DATA.users||[]).filter(u=>u.accessStatus!=='Leaver').map(u=>({user:u,email:u.email,name:u.name,title:(u.roles||[]).join(' · ')||'No PLM role assigned',initials:v33Initials(u.name),denied:u.accessStatus!=='Active'||!(u.roles||[]).length}));}
-authChooserScreen=function(){const accts=v33AuthUsers();return authBrandPanel()+`<div class="auth-stage"><div class="auth-card"><h1>Choose an account</h1><p class="auth-sub">Signed in through MTN SSO. Continue as:</p><div class="acct-list">${accts.map(a=>`<button class="acct-row ${a.denied?'denied':''}" data-act="adm33ChooseAccount" data-id="${a.user.id}"><span class="acct-ava">${esc(a.initials)}</span><span class="acct-info"><span class="acct-name">${esc(a.name)}</span><br><span class="acct-email">${esc(a.email)}</span></span><span class="acct-role"><span class="pill ${a.denied?'grey':'blue'}">${esc(a.denied?a.user.accessStatus:a.title)}</span></span></button>`).join('')}</div><div class="auth-foot">Using the wrong account? <a data-act="backToLogin">Sign in with a different account</a>.</div></div></div>`;};
+function v33AuthUsers(){ensureUserDirectoryV33();return (DATA.users||[]).filter(u=>u.accessStatus!=='Leaver').map(u=>{const roles=u.roles||[];return {user:u,email:u.email,name:u.name,title:roles[0]||'No PLM role assigned',roleCount:roles.length,initials:v33Initials(u.name),denied:u.accessStatus!=='Active'||!roles.length};});}
+authChooserScreen=function(){const accts=v33AuthUsers();return authBrandPanel()+`<div class="auth-stage"><div class="auth-card auth-card-accounts"><h1>Choose an account</h1><p class="auth-sub">Signed in through MTN SSO. Continue as:</p><div class="acct-list">${accts.map(a=>`<button class="acct-row ${a.denied?'denied':''}" data-act="adm33ChooseAccount" data-id="${a.user.id}"><span class="acct-ava">${esc(a.initials)}</span><span class="acct-info"><span class="acct-name">${esc(a.name)}</span><br><span class="acct-email">${esc(a.email)}</span></span><span class="acct-role"><span class="pill ${a.denied?'grey':'blue'}" title="${esc(a.denied?a.user.accessStatus:a.title)}">${esc(a.denied?a.user.accessStatus:a.title)}</span>${!a.denied&&a.roleCount>1?`<span class="pill grey">+${a.roleCount-1}</span>`:''}</span></button>`).join('')}</div><div class="auth-foot">Using the wrong account? <a data-act="backToLogin">Sign in with a different account</a>.</div></div></div>`;};
 AUTH_SCREENS.chooser=authChooserScreen;
 function v33SetRoleSelector(u){const roles=v33AssignedRoles(u).filter(r=>r.status==='Active');const sel=$('#roleSel');if(!sel)return null;const usable=roles.length?roles:[{id:'NONE',name:'No role'}];sel.innerHTML=usable.map(r=>`<option value="${esc(r.id||r.name)}" data-code="${v33RoleCode(r.name)}">${esc(r.name)}</option>`).join('');sel.selectedIndex=0;return usable[0];}
 
@@ -7854,10 +7901,11 @@ function v37Ensure(){
     {id:'RSK-08',component:'Rollback Capability',enabled:true,score0:'Instant/simple rollback',score1:'Standard rollback',score2:'Coordinated rollback',score3:'No clean rollback / irreversible'},
   ];
   DATA.approvalWorkflowV37=DATA.approvalWorkflowV37||adm31Cfg().approvalRoutes.map(r=>({tier:r.tier,stages:[
-    {id:'S1',name:'Business & Control Review',order:1,mode:'Parallel',roles:[...r.business],mandatory:true},
+    {id:'S1',name:'Business & Control Review',order:1,mode:'Sequential',roles:[...r.business],mandatory:true},
     {id:'S2',name:'UAT Evidence Acceptance',order:2,mode:'Sequential',roles:[r.uat],mandatory:true},
     {id:'S3',name:'Production Release Approval',order:3,mode:'Parallel',roles:[...r.production],mandatory:true}
   ],sla:r.sla}));
+  DATA.approvalWorkflowV37.forEach(w=>{const business=(w.stages||[]).find(s=>s.id==='S1'||/Business & Control Review/i.test(s.name));if(business)business.mode='Sequential';});
   DATA.impactReviews=DATA.impactReviews||{};
   DATA.requests.forEach(r=>{if(!DATA.impactReviews[r.id]){const p=productByTarget(r.target);const imp=p?impactAssessmentForWizard({type:r.typeKey,target:p.id,fields:Object.assign(newWizardFields(),p.current||{},r.requestData||{})}):null;DATA.impactReviews[r.id]={requestId:r.id,locked:!['Draft','Returned for Correction'].includes(r.status),items:[
     {area:'Business / Subscribers',owner:'Product Manager',state:r.requestData&&r.requestData.impactConfirmed?'Confirmed':'Pending',source:'CIS / CRM',asOf:'2026-09-15 10:00',reference:'AUTO-IMPACT-'+r.id.slice(-4),detail:p?p.subs:'TBC'},
@@ -8601,7 +8649,7 @@ const V7_ACTION_ROLES={
   wizard:['Product Manager','Product Owner'],wizardFor:['Product Manager','Product Owner'],startNewProduct:['Product Manager','Product Owner'],contextRequest:['Product Manager','Product Owner'],startBulk:['Product Manager','Product Owner'],startBulkExecution:['Product Manager','Product Owner'],wizSubmit:['Product Manager','Product Owner'],saveDraft:['Product Manager','Product Owner'],duplicateDraft:['Product Manager','Product Owner'],resumeDraft:['Product Manager','Product Owner'],resumeCorrection:['Product Manager','Product Owner'],cancelDraft:['Product Manager','Product Owner'],deleteDraft:['Product Manager','Product Owner'],
   certifyTpl:['Business Assurance'],doCertifyTpl:['Business Assurance'],rejectTpl:['Business Assurance'],doRejectTpl:['Business Assurance'],
   approvePreTest:['Business Assurance'],acceptTests:['Business Assurance'],approvePostTest:['Business Assurance'],v37ImpactReview:['Business Assurance'],v37ImpactDecision:['Business Assurance'],v37ImpactBlockedUAT:['Business Assurance'],
-  generateTestPack:['Test Analyst'],importTestCases:['Test Analyst'],confirmTestCaseImport:['Test Analyst'],addTestCase:['Test Analyst'],saveTestCase:['Test Analyst'],executeTestCase:['Test Analyst'],saveTestExecution:['Test Analyst'],markDefectReady:['Test Analyst'],v37EditDefect:['Test Analyst'],v37SaveDefect:['Test Analyst'],v37NewTestPackVersion:['Test Analyst'],v37NewTestPackConfirm:['Test Analyst'],v37AddTestData:['Test Analyst'],v37EditTestData:['Test Analyst'],v37SaveTestData:['Test Analyst'],
+  planRequestTests:['Test Analyst'],generateTestPack:['Test Analyst'],importTestCases:['Test Analyst'],confirmTestCaseImport:['Test Analyst'],addTestCase:['Test Analyst'],saveTestCase:['Test Analyst'],executeTestCase:['Test Analyst'],saveTestExecution:['Test Analyst'],markDefectReady:['Test Analyst'],v37EditDefect:['Test Analyst'],v37SaveDefect:['Test Analyst'],v37NewTestPackVersion:['Test Analyst'],v37NewTestPackConfirm:['Test Analyst'],v37AddTestData:['Test Analyst'],v37EditTestData:['Test Analyst'],v37SaveTestData:['Test Analyst'],
   deployToUAT:['Release Manager'],v37DeployUAT:['Release Manager'],startDeploy:['Release Manager'],v37DeployProduction:['Release Manager'],confirmAcknowledgements:['Release Manager'],v37ReleaseSchedule:['Release Manager'],v37SaveReleaseSchedule:['Release Manager'],beginRelease:['Release Manager'],
   runReleaseRecon:['Reconciliation & Monitoring Analyst'],v37RunDrift:['Reconciliation & Monitoring Analyst'],v37DiscrepancyResolve:['Reconciliation & Monitoring Analyst'],startMonitoring:['Reconciliation & Monitoring Analyst','Product Manager','Product Owner'],closeRelease:['Reconciliation & Monitoring Analyst','Product Manager','Product Owner'],
   rollback:['Exception & Rollback Manager','Release Manager'],confirmRollback:['Exception & Rollback Manager','Release Manager'],acceptExceptionModal:['Exception & Rollback Manager','Business Assurance'],doAcceptException:['Exception & Rollback Manager','Business Assurance'],reassignException:['Exception & Rollback Manager'],doReassignException:['Exception & Rollback Manager'],
@@ -8623,7 +8671,18 @@ function v7ActiveRoleName(){
 function v7RoleConfig(name){const n=v7NormalizeRoleName(name||v7ActiveRoleName());return adm31Cfg().roles.find(r=>v7NormalizeRoleName(r.name)===n)||null;}
 function v7AllowedModules(roleName){const role=v7RoleConfig(roleName),n=v7NormalizeRoleName(roleName||v7ActiveRoleName());return (role&&Array.isArray(role.modules)&&role.modules.length?role.modules:V7_ROLE_SCOPES[n]||['dashboard','reports','audit']).slice();}
 function v7RoleAllowsModule(route,roleName){if(route==='notifications')return true;return v7AllowedModules(roleName).includes(route);}
-function v7PendingApprovalForActiveRole(r){if(!r)return null;const role=v7ActiveRoleName();return (r.approvals||[]).find(a=>a.state==='Pending'&&v7NormalizeRoleName(a.role)===role)||null;}
+function v7PrepareSequentialApprovals(r){
+  if(!r||r.status!=='Pending Approval'||!Array.isArray(r.approvals))return null;
+  let current=null;
+  r.approvals.forEach(a=>{
+    if(a.state==='Approved'||['Rejected','Returned','Invalidated'].includes(a.state))return;
+    if(!current){a.state='Pending';current=a;}
+    else if(['Pending','Not Started','Not started','Queued'].includes(a.state))a.state='Not started';
+  });
+  return current;
+}
+(DATA.requests||[]).forEach(v7PrepareSequentialApprovals);
+function v7PendingApprovalForActiveRole(r){if(!r)return null;const role=v7ActiveRoleName(),current=v7PrepareSequentialApprovals(r);return current&&v7NormalizeRoleName(current.role)===role?current:null;}
 function v7CanApproveRequest(r){return !!(r&&r.status==='Pending Approval'&&v7PendingApprovalForActiveRole(r));}
 function v7CanCertifyTemplate(t){const actor=AUTH.account?AUTH.account.name:'';return !!(t&&t.state==='Pending Certification'&&v7ActiveRoleName()==='Business Assurance'&&actor!==t.owner);}
 function v7ActionAllowed(action,button){
@@ -8763,17 +8822,23 @@ document.addEventListener('click',e=>{
   if(b.dataset.act==='doApprove'){
     const comment=(document.getElementById('ap-comment')?.value||'').trim();if(!comment){toast('Approval comment is required.');return;}
     row.state='Approved';row.ts=nowStamp();row.note=comment;row.decidedBy=actor;row.decidedRole=role;
-    const allApproved=r.approvals.length>0&&r.approvals.every(a=>a.state==='Approved');if(allApproved){r.status='Approved';r.slaBad=false;r.sla=['suspend','retire'].includes(r.typeKey)?'Ready for execution':'Ready for testing';updateGate(r,'Complete approval','pass',r.approvals.length+' of '+r.approvals.length+' complete');}
+    const allApproved=r.approvals.length>0&&r.approvals.every(a=>a.state==='Approved');
+    if(allApproved){
+      r.status='Approved';r.slaBad=false;r.sla=['suspend','retire'].includes(r.typeKey)?'Ready for execution':'Ready for testing';
+      updateGate(r,'Complete approval','pass',r.approvals.length+' of '+r.approvals.length+' complete');
+      if(requestCanEnterTesting(r)) ensureReleasePipelineForRequest(r);
+    }else v7PrepareSequentialApprovals(r);
     appendAudit(actor,role,'Approval recorded',r.id,'ok','Approval',comment);closeModal();render();toast(allApproved?r.id+' fully approved.':'Approval recorded for '+r.id+'.');return;
   }
   if(b.dataset.act==='doReject'){
     const reason=(document.getElementById('rj-reason')?.value||'').trim();if(!reason){toast('A reason for rejection is required.');return;}
     r.status='Rejected';r.rejectionReason=reason;r.slaBad=false;r.sla='—';row.state='Rejected';row.ts=nowStamp();row.note=reason;row.decidedBy=actor;row.decidedRole=role;
+    r.approvals.filter(a=>a!==row&&['Pending','Not started','Not Started'].includes(a.state)).forEach(a=>{a.state='Invalidated';a.ts=nowStamp();});
     appendAudit(actor,role,'Request rejected',r.id,'bad','Approval',reason);closeModal();render();toast(r.id+' rejected. '+r.owner+' has been notified.');return;
   }
   const reason=(document.getElementById('rc-reason')?.value||'').trim();if(!reason){toast('State what needs to change before returning this request.');return;}
   r.status='Returned for Correction';r.correctionNote=reason;r.slaBad=false;r.sla='Paused';row.state='Returned';row.ts=nowStamp();row.note=reason;row.decidedBy=actor;row.decidedRole=role;
-  r.approvals.filter(a=>a!==row&&a.state==='Pending').forEach(a=>{a.state='Invalidated';a.ts=nowStamp();a.note='Route invalidated when '+role+' returned the request for correction.';});
+  r.approvals.filter(a=>a!==row&&['Pending','Not started','Not Started'].includes(a.state)).forEach(a=>{a.state='Invalidated';a.ts=nowStamp();a.note='Route invalidated when '+role+' returned the request for correction.';});
   appendAudit(actor,role,'Returned for correction',r.id,'warnd','Approval',reason);closeModal();render();toast(r.id+' returned for correction. '+r.owner+' has been notified.');
 },true);
 
@@ -8824,6 +8889,7 @@ async function plmBackendBootstrap(){
       PLM_BACKEND.hashes[name]=plmHashValue(plmModulePayload(name));
     });
     v62EnsureTestRoleModel();
+    (DATA.requests||[]).forEach(v7PrepareSequentialApprovals);
     PLM_BACKEND.ready=true;PLM_BACKEND.status='Connected · module persistence';
   }catch(err){
     console.warn('PLM backend unavailable; running in local prototype mode.',err);
@@ -8873,6 +8939,7 @@ async function plmRefreshModule(moduleName, opts={}){
     if((rec.revision||0)<=local.revision)return {changed:false};
     Object.entries(rec.data||{}).forEach(([k,v])=>{DATA[k]=v;});
     if(moduleName==='administration')v62EnsureTestRoleModel();
+    if(moduleName==='requests')(DATA.requests||[]).forEach(v7PrepareSequentialApprovals);
     local.revision=rec.revision||local.revision;
     local.branches=Object.keys(rec.data||{});
     PLM_BACKEND.hashes[moduleName]=plmHashValue(plmModulePayload(moduleName));
@@ -9351,11 +9418,11 @@ plmBackendBootstrap();
     try{
       const doc=new DOMParser().parseFromString(`<div id="v43-root">${html}</div>`,'text/html');
       const root=doc.getElementById('v43-root');
-      const singletons=new Set(['Impact Analysis','Impact Assessment Reviews','Request control','Summary','Approval route','Control gates','Evidence']);
+      const singletons=new Set(['impact analysis','impact assessment reviews','request control','summary','approval route','control gates','evidence']);
       const seenHeading=new Set(),seenExact=new Set();
       [...root.querySelectorAll('.card')].forEach(card=>{
         const h=card.querySelector('h3');if(!h)return;
-        const title=h.textContent.replace(/\s+/g,' ').trim();
+        const title=h.textContent.replace(/\s+/g,' ').trim().toLowerCase();
         const exact=title+'|'+card.textContent.replace(/\s+/g,' ').trim();
         if((singletons.has(title)&&seenHeading.has(title))||seenExact.has(exact)){card.remove();return;}
         if(singletons.has(title))seenHeading.add(title);seenExact.add(exact);
@@ -9366,6 +9433,8 @@ plmBackendBootstrap();
   window.v43DedupeRequestDetailHTML=dedupeRequestDetailHTML;
   const baseRequestsScreen=SCREENS.requests;
   SCREENS.requests=()=>{const html=baseRequestsScreen();return state.sub&&!state.wizard?dedupeRequestDetailHTML(html):html;};
+  const baseWorkflowScreen=SCREENS.workflow;
+  SCREENS.workflow=()=>{const html=baseWorkflowScreen();return state.sub?dedupeRequestDetailHTML(html):html;};
 })();
 </script>
 

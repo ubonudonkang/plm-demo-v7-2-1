@@ -1170,14 +1170,52 @@ def record_approval_decision(request_id: str, payload: ApprovalDecisionPayload):
         req = next((r for r in requests if isinstance(r, dict) and str(r.get("id")) == request_id), None)
         if not req:
             raise HTTPException(404, "Request not found")
+        if req.get("status") != "Pending Approval":
+            raise HTTPException(409, "Only a request awaiting approval can receive a decision")
         approvals = list(req.get("approvals", []) or [])
-        existing = next((a for a in approvals if a.get("role") == payload.role), None)
+
+        # Business decisions are strictly sequential. Existing demo data may
+        # still contain several rows marked Pending, so normalize it before
+        # validating the actor and again after an approval advances the route.
+        def prepare_sequence() -> dict[str, Any] | None:
+            current = None
+            for approval in approvals:
+                state = approval.get("state")
+                if state == "Approved" or state in {"Rejected", "Returned", "Invalidated"}:
+                    continue
+                if current is None:
+                    approval["state"] = "Pending"
+                    current = approval
+                elif state in {"Pending", "Not Started", "Not started", "Queued"}:
+                    approval["state"] = "Not started"
+            return current
+
+        current = prepare_sequence()
+        if current is None:
+            raise HTTPException(409, "This approval route has no pending decision")
+        if current.get("role") != payload.role:
+            raise HTTPException(
+                409,
+                f"Approval is currently awaiting {current.get('role')}; later approvers are locked",
+            )
+        existing = current
         decision = {"role": payload.role, "who": payload.actor, "state": payload.decision, "ts": now_iso(), "note": payload.note or ""}
-        if existing: existing.update(decision)
-        else: approvals.append(decision)
+        existing.update(decision)
         req["approvals"] = approvals
-        if payload.decision == "Rejected": req["status"] = "Rejected"
-        elif payload.decision == "Returned": req["status"] = "Returned for Changes"
+        if payload.decision == "Approved":
+            next_approval = prepare_sequence()
+            if next_approval is None and approvals and all(a.get("state") == "Approved" for a in approvals):
+                req["status"] = "Approved"
+        elif payload.decision == "Rejected":
+            req["status"] = "Rejected"
+            for approval in approvals:
+                if approval is not existing and approval.get("state") in {"Pending", "Not Started", "Not started"}:
+                    approval["state"] = "Invalidated"
+        elif payload.decision == "Returned":
+            req["status"] = "Returned for Correction"
+            for approval in approvals:
+                if approval is not existing and approval.get("state") in {"Pending", "Not Started", "Not started"}:
+                    approval["state"] = "Invalidated"
         data["requests"] = requests
         save_module_data(session, row, data, payload.actor, "Approval decision recorded", request_id)
         session.commit()
