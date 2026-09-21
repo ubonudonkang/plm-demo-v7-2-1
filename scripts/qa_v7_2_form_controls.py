@@ -92,7 +92,7 @@ async def main():
         assert await page.locator('[data-f="buyForOthersAllowed"]').evaluate("el=>[...el.options].map(o=>o.value)")==['No','Yes']
         await page.select_option('[data-f="sharingAllowed"]','Yes')
         await page.wait_for_timeout(30)
-        assert await page.locator('[data-f="shareablePercentage"]').get_attribute('max')=='100'
+        assert await page.locator('[data-f="shareablePercentage"]').get_attribute('max')=='80'
         await page.evaluate("state.wizard.section='dataCore';render()")
 
         # Required markers in the core data form.

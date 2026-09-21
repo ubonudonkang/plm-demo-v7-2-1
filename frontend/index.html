@@ -8598,8 +8598,8 @@ v37AccessScreen=function(){
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act="proposeTemplate"]');if(!b)return;
   if(AUTH.account&&AUTH.account.dynamic){
-    const sel=$('#roleSel'),roleName=sel&&sel.selectedOptions[0]?sel.selectedOptions[0].textContent:'';
-    const role=adm31Cfg().roles.find(r=>r.name===roleName),allowed=role&&((role.actions||[]).includes('Propose Template')||(role.actions||[]).includes('Create')||(role.actions||[]).includes('Configure'));
+    const sel=$('#roleSel'),roleName=typeof v7ActiveRoleName==='function'?v7ActiveRoleName():(sel&&sel.selectedOptions[0]?sel.selectedOptions[0].textContent:'');
+    const allowed=typeof v7ActionAllowed==='function'?v7ActionAllowed('proposeTemplate',b):['Product Owner','Product Manager'].includes(roleName);
     if(!allowed){e.preventDefault();e.stopImmediatePropagation();toast('Access denied. Switch to Product Owner or Product Manager to create a template.');return;}
   }
   e.preventDefault();e.stopImmediatePropagation();ensureTemplateDraft();go('templates','create');
@@ -9913,6 +9913,8 @@ plmBackendBootstrap();
 (function(){
   const SHARE_SECTION=['purchaseSharing','Purchase & Sharing','Sharing limits and recipient purchase rules'];
   const SHARE_LABELS=['Shareable','Maximum shareable percentage','Buy for Others','Sharing conditions'];
+  const MAX_SHAREABLE_PERCENT=80;
+  window.MAX_SHAREABLE_PERCENT=MAX_SHAREABLE_PERCENT;
 
   function v46YesNo(value){return String(value||'').toLowerCase()==='yes'?'Yes':'No';}
   function v46ExtractPercent(value){
@@ -9983,9 +9985,9 @@ plmBackendBootstrap();
   }
   function v46PercentField(w,f,cur){
     const key='shareablePercentage',current=w.type==='modify'&&cur,locked=v46Locked(w,f,key);
-    const control=(value,disabled,isCurrent)=>`<div class="v45-input-group"><input type="number" min="1" max="100" step="1" inputmode="numeric" ${isCurrent?'':'data-f="'+key+'"'} value="${esc(String(value||''))}" placeholder="20" ${disabled?'readonly':''}><span class="v45-suffix">%</span></div>`;
+    const control=(value,disabled,isCurrent)=>`<div class="v45-input-group"><input type="number" min="1" max="${MAX_SHAREABLE_PERCENT}" step="1" inputmode="numeric" ${isCurrent?'':'data-f="'+key+'"'} value="${esc(String(value||''))}" placeholder="20" ${disabled?'readonly':''}><span class="v45-suffix">%</span></div>`;
     const editor=control(f[key],locked,false);
-    return `<div class="field"><label>Maximum shareable percentage<span class="req">*</span></label>${current?`<div class="current-new"><div class="cn-col"><span class="cn-label">Current</span>${control(cur[key],true,true)}</div><div class="cn-col"><span class="cn-label">New</span>${editor}</div></div>`:editor}${locked?'<span class="helper">Inherited from the certified template and locked.</span>':'<span class="helper">Maximum cumulative percentage of the purchased entitlement that the customer may share. Enter a whole number from 1 to 100.</span>'}</div>`;
+    return `<div class="field"><label>Maximum shareable percentage<span class="req">*</span></label>${current?`<div class="current-new"><div class="cn-col"><span class="cn-label">Current</span>${control(cur[key],true,true)}</div><div class="cn-col"><span class="cn-label">New</span>${editor}</div></div>`:editor}${locked?'<span class="helper">Inherited from the certified template and locked.</span>':`<span class="helper">Maximum cumulative percentage of the purchased entitlement that the customer may share. Enter a whole number from 1 to ${MAX_SHAREABLE_PERCENT}.</span>`}</div>`;
   }
   function v46ConditionsField(w,f,cur){
     const key='sharingConditions',current=w.type==='modify'&&cur,locked=v46Locked(w,f,key);
@@ -10012,7 +10014,7 @@ plmBackendBootstrap();
     if(key==='purchaseSharing'){
       v46NormalizeSharingFields(f);
       const pct=Number(f.shareablePercentage);
-      return ['Yes','No'].includes(f.sharingAllowed)&&['Yes','No'].includes(f.buyForOthersAllowed)&&(f.sharingAllowed!=='Yes'||(Number.isInteger(pct)&&pct>=1&&pct<=100));
+      return ['Yes','No'].includes(f.sharingAllowed)&&['Yes','No'].includes(f.buyForOthersAllowed)&&(f.sharingAllowed!=='Yes'||(Number.isInteger(pct)&&pct>=1&&pct<=MAX_SHAREABLE_PERCENT));
     }
     return v46WizardCompleteBase(key,f);
   };
@@ -10040,7 +10042,7 @@ plmBackendBootstrap();
     const key=TEMPLATE_FIELD_KEYS[label],treatment=t[label]||'Editable',reset=treatment==='Reset',raw=f[key];
     let input='';
     if(label==='Shareable'||label==='Buy for Others')input=`<select data-tfd="${key}" ${reset?'disabled':''}>${['No','Yes'].map(x=>`<option ${raw===x?'selected':''}>${x}</option>`).join('')}</select>`;
-    else if(label==='Maximum shareable percentage')input=`<div class="v45-input-group"><input type="number" min="1" max="100" step="1" data-tfd="${key}" value="${esc(String(raw||''))}" ${reset||f.sharingAllowed!=='Yes'?'disabled':''}><span class="v45-suffix">%</span></div>`;
+    else if(label==='Maximum shareable percentage')input=`<div class="v45-input-group"><input type="number" min="1" max="${MAX_SHAREABLE_PERCENT}" step="1" data-tfd="${key}" value="${esc(String(raw||''))}" ${reset||f.sharingAllowed!=='Yes'?'disabled':''}><span class="v45-suffix">%</span></div>`;
     else input=`<textarea data-tfd="${key}" ${reset||f.sharingAllowed!=='Yes'?'disabled':''} placeholder="Optional sharing rules">${esc(raw||'')}</textarea>`;
     return `<div class="template-field-row"><div><strong>${esc(label)}</strong><span class="helper">${treatment==='Inherited'?'Defined by the template and locked on use.':treatment==='Reset'?'Not carried into the product; supplied during product creation.':'Used as a default and editable within approved controls.'}</span></div>${input}<select data-tt="${esc(label)}">${['Inherited','Editable','Reset'].map(x=>`<option ${treatment===x?'selected':''}>${x}</option>`).join('')}</select></div>`;
   };
@@ -10051,7 +10053,7 @@ plmBackendBootstrap();
     if(!['Yes','No'].includes(f.buyForOthersAllowed))errs.push('Buy for Others must be Yes or No.');
     if(f.sharingAllowed==='Yes'){
       const pct=Number(f.shareablePercentage);
-      if(!Number.isInteger(pct)||pct<1||pct>100)errs.push('Maximum shareable percentage is required and must be a whole number from 1 to 100.');
+      if(!Number.isInteger(pct)||pct<1||pct>MAX_SHAREABLE_PERCENT)errs.push(`Maximum shareable percentage is required and must be a whole number from 1 to ${MAX_SHAREABLE_PERCENT}.`);
     }
     return errs;
   }

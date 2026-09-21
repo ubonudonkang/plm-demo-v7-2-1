@@ -27,9 +27,12 @@ async def main():
               const holder={products:[{current:legacy}],templates:[],requests:[]};
               const original=DATA.products;DATA.products=holder.products;
               v46EnsurePurchaseSharingModel();DATA.products=original;
+              const templateHolder=document.createElement('div');
+              templateHolder.innerHTML=templateFieldInput('Maximum shareable percentage',{sharingAllowed:'Yes',shareablePercentage:'25'},{'Maximum shareable percentage':'Editable'});
               return {
                 defaults:{shareable:fresh.sharingAllowed,percentage:fresh.shareablePercentage,buyForOthers:fresh.buyForOthersAllowed},
                 migrated:legacy,
+                templateMaximum:templateHolder.querySelector('[data-tfd="shareablePercentage"]')?.max,
                 baseSections:CONFIG_SECTIONS.map(x=>x[0]),
                 templateLabels:TEMPLATE_GROUPS.purchaseSharing,
                 oldTemplateBuy:(TEMPLATE_GROUPS.enterpriseAllowances||[]).includes('Buy For Other'),
@@ -41,6 +44,7 @@ async def main():
         assert model["migrated"]["sharingAllowed"] == "Yes", model
         assert model["migrated"]["shareablePercentage"] == "20", model
         assert model["migrated"]["buyForOthersAllowed"] == "Yes", model
+        assert model["templateMaximum"] == "80", model
         assert "purchaseSharing" in model["baseSections"], model
         assert model["templateLabels"] == ["Shareable", "Maximum shareable percentage", "Buy for Others", "Sharing conditions"], model
         assert not model["oldTemplateBuy"] and not model["oldTemplateTransfer"], model
@@ -71,9 +75,9 @@ async def main():
         valid = await page.evaluate("()=>validateWizard(state.wizard.fields).errs.filter(x=>/share|Buy for Others/i.test(x))")
         assert not valid, valid
 
-        await page.fill('[data-f="shareablePercentage"]', "101")
+        await page.fill('[data-f="shareablePercentage"]', "81")
         invalid = await page.evaluate("()=>validateWizard(state.wizard.fields).errs")
-        assert any("whole number from 1 to 100" in error for error in invalid), invalid
+        assert any("whole number from 1 to 80" in error for error in invalid), invalid
 
         risk = await page.evaluate("()=>riskAssessment(state.wizard.fields).find(x=>x.component==='Sharing & recipient purchase')")
         assert risk and risk["score"] == 2, risk

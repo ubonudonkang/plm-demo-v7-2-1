@@ -98,6 +98,28 @@ async def main():
         assert result["allBusinessSequential"], result
         assert "commercialPolicy" in result["requestSections"], result
         assert "entitlementPolicy" in result["requestSections"], result
+
+        # The visible Product Owner action must open a fresh template workspace;
+        # it must not be rejected by the older role-action catalogue.
+        await page.evaluate(
+            """()=>{
+              ensureUserDirectoryV33();
+              const u=DATA.users.find(x=>x.name==='Uche Chiemejonam');
+              AUTH.account={dynamic:true,userId:u.id,name:u.name,email:u.email,title:u.title,initials:v33Initials(u.name)};
+              AUTH.stage='authed';renderAuth();
+              const role=v33SetRoleSelector(u);state.role=v33RoleCode(role.name);go('templates');
+            }"""
+        )
+        create_button = page.locator('[data-act="proposeTemplate"]:visible')
+        assert await create_button.count() == 1
+        await create_button.click()
+        await page.wait_for_timeout(50)
+        created = await page.evaluate(
+            """()=>({route:state.route,sub:state.sub,draft:!!state.templateDraft,
+              title:document.querySelector('#main-content h2')?.textContent||''})"""
+        )
+        assert created["route"] == "templates" and created["sub"] == "create", created
+        assert created["draft"] and "Create" in created["title"] and "Template" in created["title"], created
         assert not errors, errors
 
         print(
@@ -111,6 +133,7 @@ async def main():
                     "enterprise_channel_scope": "PASS",
                     "currency_consistency": "PASS",
                     "sequential_business_approvals": "PASS",
+                    "create_template_button": "PASS",
                     "page_errors": 0,
                 },
                 indent=2,
