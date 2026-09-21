@@ -120,6 +120,58 @@ async def main():
         )
         assert created["route"] == "templates" and created["sub"] == "create", created
         assert created["draft"] and "Create" in created["title"] and "Template" in created["title"], created
+
+        # Signing out must destroy all user-scoped navigation, role and draft
+        # state before another account is selected.
+        await page.evaluate(
+            """()=>{
+              state.templateDraft.meta.name='Uche private draft';
+              state.wizard={sentinel:'previous-user'};
+              state.filters={templates:{state:'Certified'}};
+              state.releaseRequest='REQ-PREVIOUS-USER';
+              state.auditRequest='REQ-PREVIOUS-AUDIT';
+              state.testingPage=7;
+            }"""
+        )
+        await page.locator('#avatarBtn').click()
+        await page.locator('[data-act="signOut"]:visible').click()
+        signed_out = await page.evaluate(
+            """()=>({account:AUTH.account,stage:AUTH.stage,activeRole:state.activeRoleName,
+              activeUser:state.activeRoleUserId,wizard:state.wizard,templateDraft:state.templateDraft,
+              filters:state.filters,releaseRequest:state.releaseRequest,auditRequest:state.auditRequest,
+              testingPage:state.testingPage,roleValue:document.querySelector('#roleSel')?.value})"""
+        )
+        assert signed_out == {
+            "account": None,
+            "stage": "expired",
+            "activeRole": "",
+            "activeUser": None,
+            "wizard": None,
+            "templateDraft": None,
+            "filters": {},
+            "releaseRequest": None,
+            "auditRequest": None,
+            "testingPage": 1,
+            "roleValue": "",
+        }, signed_out
+
+        await page.locator('[data-act="startSSO"]:visible').click()
+        await page.wait_for_timeout(1000)
+        mercy_id = await page.evaluate("DATA.users.find(x=>x.name==='Mercy Andrew').id")
+        await page.locator(f'[data-act="adm33ChooseAccount"][data-id="{mercy_id}"]').click()
+        switched = await page.evaluate(
+            """()=>({name:AUTH.account?.name,userId:AUTH.account?.userId,stage:AUTH.stage,
+              activeRole:v7ActiveRoleName(),activeUser:state.activeRoleUserId,route:state.route,
+              sub:state.sub,wizard:state.wizard,templateDraft:state.templateDraft,
+              avatar:document.querySelector('#avatarBtn')?.textContent,
+              roleOptions:[...document.querySelectorAll('#roleSel option')].map(x=>x.textContent)})"""
+        )
+        assert switched["name"] == "Mercy Andrew" and switched["userId"] == mercy_id, switched
+        assert switched["stage"] == "authed" and switched["activeUser"] == mercy_id, switched
+        assert switched["activeRole"] == "Business Assurance", switched
+        assert switched["route"] == "dashboard" and switched["sub"] is None, switched
+        assert switched["wizard"] is None and switched["templateDraft"] is None, switched
+        assert switched["avatar"] == "MA" and "Product Owner" not in switched["roleOptions"], switched
         assert not errors, errors
 
         print(
@@ -134,6 +186,7 @@ async def main():
                     "currency_consistency": "PASS",
                     "sequential_business_approvals": "PASS",
                     "create_template_button": "PASS",
+                    "account_session_isolation": "PASS",
                     "page_errors": 0,
                 },
                 indent=2,

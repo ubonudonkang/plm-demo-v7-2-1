@@ -1624,6 +1624,21 @@ const ACCOUNTS = [
 const ROLE_INITIALS = {po:"UC", ba:"MA", rel:"EO", test:"IO", admin:"MO"};
 const AUTH = {stage:"login", account:null, exitReason:null};
 
+function resetAccountSessionState(){
+  AUTH.account=null;AUTH.exitReason=null;
+  state.route='dashboard';state.sub=null;state.tab=null;state.role='po';state.wizard=null;
+  state.q='';state.report=null;state.reportRecord=null;state.releaseRequest=null;state.auditRequest=null;state.testingPage=1;state.filters={};
+  state.templateDraft=null;state.activeRoleName='';state.activeRoleUserId=null;
+  if(typeof pendingActionId!=='undefined')pendingActionId=null;
+  const roleSel=document.getElementById('roleSel');
+  if(roleSel){roleSel.innerHTML='<option value="">No active role</option>';roleSel.value='';}
+  const avatar=document.getElementById('avatarBtn');if(avatar)avatar.textContent='US';
+  const search=document.getElementById('globalSearch');if(search)search.value='';
+  const searchResults=document.getElementById('gsearchResults');if(searchResults){searchResults.hidden=true;searchResults.innerHTML='';}
+  const bell=document.getElementById('bellPanel');if(bell)bell.hidden=true;
+  const modal=document.getElementById('modalRoot');if(modal){modal.hidden=true;modal.innerHTML='';}
+}
+
 function authBrandPanel(){
   return `<div class="auth-brand">
     <div class="brand"><div class="brand-mark" aria-hidden="true">PLM</div>
@@ -5136,28 +5151,30 @@ document.addEventListener("click", e => {
 
   switch(a){
     case "startSSO":
+      resetAccountSessionState();
       AUTH.stage = "redirecting"; renderAuth();
       setTimeout(()=>{ AUTH.stage = "chooser"; renderAuth(); }, 900);
       break;
     case "chooseAccount":
       { const acct = ACCOUNTS.find(x=>x.email===b.dataset.email);
         if (!acct) break;
+        resetAccountSessionState();
         AUTH.account = acct;
         if (acct.denied){ AUTH.stage = "denied"; renderAuth(); break; }
         state.role = acct.role;
         AUTH.stage = "authed";
-        renderAuth();
+        $("#roleSel").innerHTML=`<option value="${esc(acct.role)}">${esc(acct.title)}</option>`;
         $("#roleSel").value = acct.role;
         $("#avatarBtn").textContent = ROLE_INITIALS[acct.role];
-        go("dashboard");
+        renderAuth();
         toast("Signed in as " + acct.name + ".");
       }
       break;
     case "backToLogin":
-      AUTH.stage = "login"; AUTH.account = null; renderAuth();
+      resetAccountSessionState();AUTH.stage = "login";renderAuth();
       break;
     case "previewExpired":
-      AUTH.exitReason = "timeout"; AUTH.stage = "expired"; renderAuth();
+      resetAccountSessionState();AUTH.exitReason = "timeout";AUTH.stage = "expired";renderAuth();
       break;
     case "requestAccessModal":
       openModal(modalShell("Request access","Routed to a Platform Administrator for provisioning",
@@ -5178,7 +5195,7 @@ document.addEventListener("click", e => {
       break;
     case "signOut":
       closeModal();
-      AUTH.exitReason = "signedout"; AUTH.stage = "expired"; AUTH.account = null;
+      resetAccountSessionState();AUTH.exitReason = "signedout";AUTH.stage = "expired";
       renderAuth();
       break;
     case "go":        go(b.dataset.route, b.dataset.sub, b.dataset.tab); break;
@@ -6428,7 +6445,7 @@ const v26StartWizard=startWizard;
 startWizard=function(type,target,tplId){v26StartWizard(type,target,tplId);const w=state.wizard,p=target?DATA.products.find(x=>x.id===target):null;if(w&&w.fields&&w.type!=="bulk"){if(p){w.fields.division=p.domain||w.fields.division;w.fields.productFamily=p.family||w.fields.productFamily;w.fields.offering=p.offering||p.name;w.fields.variant=p.variant||"Standard";w.fields.businessOwner=p.businessOwner||"";w.fields.productManager=p.productManager||p.owner||"";w.fields.technicalOwner=p.technicalOwner||"";if(w.currentFields){Object.assign(w.currentFields,{division:p.domain,productFamily:p.family,offering:p.offering,variant:p.variant,businessOwner:p.businessOwner,productManager:p.productManager,technicalOwner:p.technicalOwner});}}else if(tplId){const t=DATA.templates.find(x=>x.id===tplId);if(t){w.fields.division=t.domain||w.fields.division;w.fields.productFamily=t.family||w.fields.productFamily;}}}render();};
 
 const v26TemplateCreationScreen=templateCreationScreen;
-templateCreationScreen=function(){const d=ensureTemplateDraft();d.meta.productFamily=d.meta.productFamily||defaultFamily(d.fields.division||"Marketing",d.meta.category||d.fields.cat);d.meta.offeringScope=d.meta.offeringScope||"Product Offering and permitted Variants";let h=v26TemplateCreationScreen();h=h.replace(/<label>Division<span class="req">\*<\/span><\/label>/g,'<label>Line of Business / Product Domain<span class="req">*</span></label>');h=h.replace(/<label>Category<span class="req">\*<\/span><\/label>/g,'<label>Product Category<span class="req">*</span></label>');h=h.replace(/<label>Subcategory<span class="req">\*<\/span><\/label>/g,'<label>Product Sub-Category<span class="req">*</span></label>');const fams=familyOptions(d.fields.division||"Marketing");const familyField=`<div class="field"><label>Product Family<span class="req">*</span></label><select data-tmeta="productFamily" ${c.domainName?'':'disabled'}><option value="">${c.domainName?'Select family':'Select domain first'}</option>${fams.map(x=>`<option ${d.meta.productFamily===x?"selected":""}>${x}</option>`).join("")}</select></div>`;h=h.replace('<div class="field"><label>Product Category',familyField+'<div class="field"><label>Product Category');h=h.replace('<div class="field"><label>Scope of reuse',`<div class="field"><label>Offering / Variant scope<span class="req">*</span></label><input data-tmeta="offeringScope" value="${esc(d.meta.offeringScope)}"></div><div class="field"><label>Scope of reuse`);h=h.replace('Choose the owning division and product family first','Choose the Product Domain and Product Family first');return h;};
+templateCreationScreen=function(){const d=ensureTemplateDraft();d.meta.productFamily=d.meta.productFamily||defaultFamily(d.fields.division||"Marketing",d.meta.category||d.fields.cat);d.meta.offeringScope=d.meta.offeringScope||"Product Offering and permitted Variants";let h=v26TemplateCreationScreen();h=h.replace(/<label>Division<span class="req">\*<\/span><\/label>/g,'<label>Line of Business / Product Domain<span class="req">*</span></label>');h=h.replace(/<label>Category<span class="req">\*<\/span><\/label>/g,'<label>Product Category<span class="req">*</span></label>');h=h.replace(/<label>Subcategory<span class="req">\*<\/span><\/label>/g,'<label>Product Sub-Category<span class="req">*</span></label>');const fams=familyOptions(d.fields.division||"Marketing");const familyField=`<div class="field"><label>Product Family<span class="req">*</span></label><select data-tmeta="productFamily" ${d.fields.division?'':'disabled'}><option value="">${d.fields.division?'Select family':'Select domain first'}</option>${fams.map(x=>`<option ${d.meta.productFamily===x?"selected":""}>${x}</option>`).join("")}</select></div>`;h=h.replace('<div class="field"><label>Product Category',familyField+'<div class="field"><label>Product Category');h=h.replace('<div class="field"><label>Scope of reuse',`<div class="field"><label>Offering / Variant scope<span class="req">*</span></label><input data-tmeta="offeringScope" value="${esc(d.meta.offeringScope)}"></div><div class="field"><label>Scope of reuse`);h=h.replace('Choose the owning division and product family first','Choose the Product Domain and Product Family first');return h;};
 
 SCREENS.templates=()=>{
   if(state.sub==="create")return templateCreationScreen();const q=(state.q||"").toLowerCase(),dom=fval("templates27","domain","All domains"),fam=fval("templates27","family","All families"),st=fval("templates27","state","All states");const rows=(DATA.templates||[]).filter(t=>(!q||(t.id+t.name+t.scope+t.domain+t.family).toLowerCase().includes(q))&&(dom==="All domains"||t.domain===dom)&&(fam==="All families"||t.family===fam)&&(st==="All states"||t.state===st));return pageHead("Templates","Certified reusable configurations scoped to the enterprise taxonomy. Templates govern defaults; authoritative systems still own live product data.",`<button class="btn mtn" data-act="proposeTemplate">Create Template</button>`)+`<div class="card flush"><div class="filters" data-scope="templates27"><select data-filter="domain">${["All domains",...new Set(DATA.templates.map(t=>t.domain))].map(x=>`<option ${fsel(dom,x)}>${esc(x)}</option>`).join("")}</select><select data-filter="family">${["All families",...new Set(DATA.templates.map(t=>t.family))].map(x=>`<option ${fsel(fam,x)}>${esc(x)}</option>`).join("")}</select><select data-filter="state">${["All states","Certified","Pending Certification","Rejected","Withdrawn"].map(x=>`<option ${fsel(st,x)}>${esc(x)}</option>`).join("")}</select><span class="spacer small muted">${rows.length} templates</span></div><div class="table-wrap" style="border:0;border-radius:0"><table><thead><tr><th>Template</th><th>Domain / Family</th><th>Category / Sub-Category</th><th>Owner</th><th>Version</th><th>State</th><th></th></tr></thead><tbody>${rows.map(t=>`<tr><td><strong>${esc(t.name)}</strong><div class="sub">${esc(t.id)}</div></td><td><strong>${esc(t.domain)}</strong><div class="sub">${esc(t.family)}</div></td><td>${esc(t.category||'—')}<div class="sub">${esc(t.subcategory||'—')}</div></td><td>${esc(t.owner)}</td><td>${esc(t.ver)}</td><td>${pill(t.state)}</td><td class="actions"><button class="btn sm" data-act="tplDetail" data-id="${t.id}">View</button>${t.state==="Certified"?`<button class="btn sm black" data-act="useTemplate" data-tplid="${t.id}" data-reqtype="create">Use Template</button>`:`<button class="btn sm" data-act="go" data-route="workflow" data-sub="__cert__${t.id}">Track certification</button>`}</td></tr>`).join("")}</tbody></table></div></div>`;
@@ -7439,7 +7456,12 @@ document.addEventListener('click',e=>{
     const role=qv('#adm33-dlg-role'),from=qv('#adm33-dlg-from'),to=qv('#adm33-dlg-to'),start=qv('#adm33-dlg-start'),end=qv('#adm33-dlg-end'),reason=(document.getElementById('adm33-dlg-reason')?.value||'').trim();if(!role||!from||!to||!start||!end||!reason){toast('Role, users, dates and reason are required.');return;}if(from===to){toast('Delegation From and To users must be different.');return;}if(end<start){toast('Delegation end date cannot be before the start date.');return;}const fu=DATA.users.find(u=>u.name===from),tu=DATA.users.find(u=>u.name===to);if(!fu||(fu.roles||[]).indexOf(role)<0){toast('The From user does not hold the selected role.');return;}const conflicts=v33SodConflicts([...(tu.roles||[]),role]);if(conflicts.length){toast('Delegation would create an SoD conflict: '+conflicts.join(' '));return;}const d={id:'DLG-'+String((DATA.delegations||[]).length+1).padStart(3,'0'),role,from,to,start,end,reason,authorisedBy:AUTH.account?AUTH.account.name:'Platform Administrator',state:'Active'};DATA.delegations.push(d);adm31Log('Delegation created',role+' · '+from+' → '+to+' · '+start+' to '+end);closeModal();render();toast('Delegation created.');return;
   }
   if(a==='adm33ChooseAccount'){
-    const u=v33UserById(b.dataset.id);if(!u)return;AUTH.account={dynamic:true,userId:u.id,name:u.name,email:u.email,title:u.title,initials:v33Initials(u.name)};if(u.accessStatus!=='Active'||!(u.roles||[]).length){AUTH.stage='denied';renderAuth();return;}AUTH.stage='authed';renderAuth();const role=v33SetRoleSelector(u);state.role=v33RoleCode(role.name);$('#avatarBtn').textContent=v33Initials(u.name);go('dashboard');toast('Signed in as '+u.name+'.');return;
+    const u=v33UserById(b.dataset.id);if(!u)return;
+    resetAccountSessionState();
+    AUTH.account={dynamic:true,userId:u.id,name:u.name,email:u.email,title:u.title,initials:v33Initials(u.name)};
+    if(u.accessStatus!=='Active'||!(u.roles||[]).length){AUTH.stage='denied';renderAuth();return;}
+    const role=v33SetRoleSelector(u);if(!role){AUTH.stage='denied';renderAuth();return;}
+    state.role=v33RoleCode(role.name);AUTH.stage='authed';$('#avatarBtn').textContent=v33Initials(u.name);renderAuth();toast('Signed in as '+u.name+'.');return;
   }
 },true);
 
@@ -8599,10 +8621,11 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act="proposeTemplate"]');if(!b)return;
   if(AUTH.account&&AUTH.account.dynamic){
     const sel=$('#roleSel'),roleName=typeof v7ActiveRoleName==='function'?v7ActiveRoleName():(sel&&sel.selectedOptions[0]?sel.selectedOptions[0].textContent:'');
-    const allowed=typeof v7ActionAllowed==='function'?v7ActionAllowed('proposeTemplate',b):['Product Owner','Product Manager'].includes(roleName);
+    const allowed=['Product Owner','Product Manager'].includes(roleName);
     if(!allowed){e.preventDefault();e.stopImmediatePropagation();toast('Access denied. Switch to Product Owner or Product Manager to create a template.');return;}
   }
-  e.preventDefault();e.stopImmediatePropagation();ensureTemplateDraft();go('templates','create');
+  e.preventDefault();e.stopImmediatePropagation();
+  state.templateDraft=null;ensureTemplateDraft();state.route='templates';state.sub='create';state.tab=null;state.wizard=null;state.q='';render();window.scrollTo(0,0);
 },true);
 
 v62EnsureTestRoleModel();
