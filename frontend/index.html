@@ -2060,7 +2060,7 @@ function renderProductDetailTab(p, active){
   if(active==="channels"){
     const ch=f.channels.length?f.channels:(CHANNELS_BY_CATEGORY[p.cat]||[]);
     return `<div class="cols-2">
-      ${detailSection("Published channels","Channels selected in the product form.",`<div class="row" style="gap:8px;flex-wrap:wrap">${ch.map(c=>`<span class="pill blue plain">${esc(c)}</span>`).join("")||"—"}</div><p class="small muted" style="margin-top:12px">A channel appears here because it was selected for this product configuration.</p>`)}
+      ${detailSection("Published channels","Channels selected in the product form.",`<div class="row" style="gap:8px;flex-wrap:wrap">${ch.map(c=>`<span class="pill blue plain">${esc(c)}</span>`).join("")||"—"}</div><p class="small muted" style="margin-top:12px">A channel appears here because it was selected for this product configuration.</p>${f.channels.includes("USSD")?`<div style="margin-top:12px">${detailKV([["USSD menu path",f.ussdMenuPath||"—"],["USSD menu page",f.ussdPage||"—"],["Position on page",f.ussdPosition||"—"]])}</div>`:""}`)}
       ${detailSection("Customer communication","Notification behaviour captured by the product form.",detailKV([["Notification",f.notification],["Eligibility",f.eligibility],["Effective date",f.eff],["Expiry date",f.expiry]]))}
     </div>`;
   }
@@ -3039,6 +3039,7 @@ function newWizardFields(tplId){
     // Migration (catalogue-aligned)
     migrationApplicable:true, migMethod:"USSD Self-Service", migUssd:"", migFirstFee:"0", migSubFee:"102",
     migCycle:"30", migNote:"",
+    ussdMenuPath:"", ussdPage:"", ussdPosition:"",
     // Main Account — mirrors CONS - COMMERCIAL TARIFF TABLE.
     dailyAccessFee:"N/A", insufficientRate:"N/A", firstMinRate:"N/A",
     localOnnetVoiceRate:"", localOffnetVoiceRate:"", localOnnetSmsRate:"", localOffnetSmsRate:"", paygoRate:"N3.07/MB",
@@ -10358,7 +10359,7 @@ plmBackendBootstrap();
     return `${detailSection('Commercial, Tax & Regulatory','Canonical policy used by approval, testing and reconciliation.',detailKV([['Currency',f.currency],['Billing basis',f.billingBasis],['VAT treatment',f.vatTreatment],['Regulatory applicability',f.regulatoryApplicability]]))}${detailSection('Eligibility, Renewal & Fulfilment','Customer qualification and entitlement lifecycle.',detailKV([['Eligibility',f.eligibility],['Automatic renewal',f.autoRenewAllowed],['Rollover',f.rolloverAllowed],['Maximum rollover cycles',f.rolloverAllowed==='Yes'?f.rolloverCycles:'Not applicable'],['Fulfilment mode',f.fulfilmentMode]]))}`;
   }
   productConfigSnapshot=function(p){
-    const f=v47NormalizeConfig(productDisplayFields(p)),base=detailSection('Current governed snapshot','Latest approved/versioned values observed by PLM.',detailKV([['Plan/Product Name',p.name],['Category',p.cat],['Sub-Category',p.sub],['Version',p.ver],['Price',p.price],['Service Class',f.serviceClass],['Effective date',p.eff],['Channels',f.channels]]));
+    const f=v47NormalizeConfig(productDisplayFields(p)),base=detailSection('Current governed snapshot','Latest approved/versioned values observed by PLM.',detailKV([['Plan/Product Name',p.name],['Category',p.cat],['Sub-Category',p.sub],['Version',p.ver],['Price',p.price],['Service Class',f.serviceClass],['Effective date',p.eff],['Channels',f.channels],...(f.channels.includes('USSD')?[['USSD placement',[f.ussdMenuPath,f.ussdPage?'page '+f.ussdPage:'',f.ussdPosition?'position '+f.ussdPosition:''].filter(Boolean).join(' · ')||'—']]:[])]));
     let specific='';
     if(isDataProduct(f))specific=detailSection('Data configuration','Product-family fields from the approved Data configuration.',detailKV([['Data Product Type',f.dataProductType],['Product ID',f.dataProductId],['Plan class / duration',f.dataPlanClass],['Data volume',f.dataVolume],['Data price',f.dataPrice],['Data validity',f.dataValidity],['Service / app scope',f.dataServiceScope],['Service / app details',f.dataServiceDetails],['SIM population band',f.simPopulationBand],['APN required',f.apnRequired],['APN name',f.apnName],['Transfer band',f.transferBand],['Transfer rules',f.transferRules]]));
     else if(isEnterprisePlan(f))specific=renderProductDetailTab(p,'enterprise');
@@ -10410,6 +10411,369 @@ plmBackendBootstrap();
   v37ApprovalStageModal=function(tier,stageId){v47ApprovalModalBase(tier,stageId);const mode=document.getElementById('v37-ap-mode');if(mode){mode.innerHTML='<option selected>Sequential</option>';mode.disabled=true;}};
 
   v47NormalizeAll();
+})();
+</script>
+
+<script>
+/* v48 - USSD menu placement under Channels (templates, requests, approvals, product detail). */
+(function(){
+  const KEYS=['ussdMenuPath','ussdPage','ussdPosition'];
+  const LABELS={ussdMenuPath:'USSD menu path',ussdPage:'USSD menu page',ussdPosition:'USSD position on page'};
+  const PAGES=Array.from({length:10},(_,i)=>String(i+1)),POSITIONS=Array.from({length:9},(_,i)=>String(i+1));
+  const PATH_RE=/^\*\d+(\*\d+)*#$/;
+  const hasUssd=f=>!!(f&&Array.isArray(f.channels)&&f.channels.includes('USSD'));
+  const clear=f=>{KEYS.forEach(k=>{f[k]='';});};
+  const slot=f=>[f.ussdMenuPath,f.ussdPage,f.ussdPosition].join('|');
+  const complete=f=>!!(f&&f.ussdMenuPath&&f.ussdPage&&f.ussdPosition);
+  window.ussdPlacementText=f=>hasUssd(f)&&complete(f)?`${f.ussdMenuPath} · page ${f.ussdPage} · position ${f.ussdPosition}`:'';
+
+  function occupants(){
+    const out=[];
+    (DATA.products||[]).forEach(p=>{const c=p.current;if(hasUssd(c)&&complete(c))out.push({slot:slot(c),id:p.id,name:p.name,source:p.id});});
+    (DATA.requests||[]).forEach(r=>{const c=r.requestData;if(r.status==='Pending Approval'&&['create','clone','modify'].includes(r.typeKey)&&hasUssd(c)&&complete(c))out.push({slot:slot(c),id:r.id,name:c.name||r.target,source:c.sourceProductId||''});});
+    return out;
+  }
+  function conflict(f){
+    if(!hasUssd(f)||!complete(f))return null;
+    const mine=slot(f);
+    return occupants().find(o=>o.slot===mine&&!(f.sourceProductId&&o.source===f.sourceProductId))||null;
+  }
+
+  function seedLegacy(){
+    const missing=(DATA.products||[]).filter(p=>p.current&&hasUssd(p.current)&&!complete(p.current));
+    if(!missing.length)return;
+    const taken=new Set(occupants().map(o=>o.slot));let n=0;
+    missing.forEach(p=>{
+      let cand;do{n++;cand=['*123#',String(Math.floor((n-1)/9)+1),String((n-1)%9+1)].join('|');}while(taken.has(cand));
+      taken.add(cand);const [a,b,c]=cand.split('|');p.current.ussdMenuPath=a;p.current.ussdPage=b;p.current.ussdPosition=c;
+    });
+  }
+  seedLegacy();
+  const productFieldsBase=productDisplayFields;
+  productDisplayFields=function(p){seedLegacy();return productFieldsBase(p);};
+
+  const resetBase=resetTemplateFieldValue;
+  resetTemplateFieldValue=function(fields,key){resetBase(fields,key);if(key==='channels')clear(fields);};
+
+  function options(list,val,placeholder){return `<option value="">${placeholder}</option>`+list.map(x=>`<option ${String(val)===x?'selected':''}>${x}</option>`).join('');}
+  function conflictNote(f){const c=conflict(f);return c?`<div class="callout warn" style="margin-top:12px"><strong>Position already taken</strong>${esc(c.id)}${c.name?' ('+esc(c.name)+')':''} already uses ${esc(window.ussdPlacementText(f))}. Choose a different page or position.</div>`:'';}
+
+  function templateCard(d){
+    const f=d.fields,reset=(d.treatments['Channels']||'Editable')==='Reset';
+    return `<div class="card" style="margin-top:14px"><div class="card-head"><div><h3>Default USSD placement</h3><p>Suggested position on the USSD menu carried into products created from this template. Each product must still hold a unique page and position.</p></div></div><div class="form">
+      <div class="field"><label>USSD menu path</label><input data-tfd="ussdMenuPath" value="${esc(f.ussdMenuPath||'')}" placeholder="*123#" ${reset?'disabled':''}></div>
+      <div class="field"><label>Menu page</label><select data-tfd="ussdPage" ${reset?'disabled':''}>${options(PAGES,f.ussdPage,'Select page')}</select></div>
+      <div class="field"><label>Position on page</label><select data-tfd="ussdPosition" ${reset?'disabled':''}>${options(POSITIONS,f.ussdPosition,'Select position')}</select></div>
+    </div></div>`;
+  }
+  const tplChannelsBase=templateChannelsEditor;
+  templateChannelsEditor=function(d){
+    if(!hasUssd(d.fields))clear(d.fields);
+    return tplChannelsBase(d)+(hasUssd(d.fields)?templateCard(d):'');
+  };
+
+  function wizardCard(w,f,cur){
+    const isModify=w.type==='modify'&&cur,before=isModify&&hasUssd(cur)?(window.ussdPlacementText(cur)||'Not set'):'';
+    return `<div class="card config-main-card" style="margin-top:14px"><div class="card-head"><div><h3>USSD menu placement</h3><p>Where this product appears on the USSD menu. Page and position must be unique within the menu path, and any change goes through approval.</p></div></div>
+      ${isModify?`<div class="small muted" style="margin-bottom:10px">Current placement: ${esc(before||'Not on USSD')}</div>`:''}
+      <div class="form">
+      <div class="field"><label>USSD menu path<span class="req">*</span></label><input data-f="ussdMenuPath" value="${esc(f.ussdMenuPath||'')}" placeholder="*123#"><span class="helper">Shortcode the customer dials, for example *123# or *123*2#.</span></div>
+      <div class="field"><label>Menu page<span class="req">*</span></label><select data-f="ussdPage">${options(PAGES,f.ussdPage,'Select page')}</select></div>
+      <div class="field"><label>Position on page<span class="req">*</span></label><select data-f="ussdPosition">${options(POSITIONS,f.ussdPosition,'Select position')}</select></div>
+      </div>${conflictNote(f)}</div>`;
+  }
+  const wizSectionBase=wizardConfigSectionHTML;
+  wizardConfigSectionHTML=function(w,f,cur,active){
+    if(active==='channels'&&!hasUssd(f))clear(f);
+    const html=wizSectionBase(w,f,cur,active);
+    return active==='channels'&&hasUssd(f)?html+wizardCard(w,f,cur):html;
+  };
+
+  document.addEventListener('change',e=>{
+    const t=e.target,key=t&&t.dataset&&t.dataset.f;
+    if(state.wizard&&key&&KEYS.includes(key)){state.wizard.fields[key]=t.value;render();}
+  });
+
+  function placementErrors(f,forTemplate){
+    const errs=[];
+    if(!hasUssd(f))return errs;
+    const any=KEYS.some(k=>f[k]);
+    if(forTemplate&&!any)return errs;
+    if(!f.ussdMenuPath)errs.push('USSD menu path is required when USSD is selected.');
+    else if(!PATH_RE.test(f.ussdMenuPath))errs.push('USSD menu path must look like *123# or *123*2#.');
+    if(!f.ussdPage)errs.push('USSD menu page is required when USSD is selected.');
+    if(!f.ussdPosition)errs.push('USSD position on page is required when USSD is selected.');
+    if(!forTemplate){const c=conflict(f);if(c)errs.push(`USSD placement ${window.ussdPlacementText(f)} is already used by ${c.id}${c.name?' ('+c.name+')':''}.`);}
+    return errs;
+  }
+  const validateBase=validateWizard;
+  validateWizard=function(f){
+    if(!hasUssd(f))clear(f);
+    const out=validateBase(f);
+    placementErrors(f,false).forEach(m=>out.errs.push(m));
+    return out;
+  };
+
+  const submitTemplateBase=v38SubmitTemplate;
+  v38SubmitTemplate=function(){
+    const d=state.templateDraft;
+    if(d){const errs=placementErrors(d.fields,true);if(errs.length){toast(errs[0]);return;}}
+    return submitTemplateBase();
+  };
+
+  const summaryBase=validationSummaryRows;
+  validationSummaryRows=function(f){
+    const rows=summaryBase(f);
+    if(!hasUssd(f))return rows;
+    const at=rows.findIndex(r=>r[0]==='Channels');
+    rows.splice(at<0?rows.length:at+1,0,['USSD placement',window.ussdPlacementText(f)||'Not set']);
+    return rows;
+  };
+
+  const diffsBase=window.buildRequestDiffs;
+  window.buildRequestDiffs=function(w){
+    return diffsBase(w).map(d=>KEYS.includes(d.key)?Object.assign({},d,{f:LABELS[d.key],mat:true}):d);
+  };
+})();
+</script>
+
+<script>
+/* v49 - Guarantee Product Offering / Product Variant dropdowns always carry
+   governed options: merge duplicate legacy Sub-Category names into their
+   canonical node (so real Offerings aren't stranded under a shadow node),
+   and seed a default Offering + Variant for any Sub-Category that still has
+   none, so a required Offering/Variant selector is never left empty. */
+(function(){
+  const LEGACY_SUB_ALIASES={'Commercial':'Commercial Plans','Business':'Business Plans','Zone A':'Roaming Bundles','Zone B':'Roaming Bundles'};
+  const DEFAULT_OFFERINGS={
+    'Marketing|Voice|Tariff Plans|Postpaid':['Postpaid Classic','Postpaid Family','Postpaid SME'],
+    'Marketing|VAS / Offers|Offers|Data Offers':['Weekend Data Offer','Night Data Offer','Welcome Back Data Offer']
+  };
+
+  function nextId(cfg){
+    const max=cfg.taxonomy.reduce((m,n)=>Math.max(m,Number(String(n.id||'').replace(/\D/g,''))||0),0);
+    return 'TAX-'+String(max+1).padStart(3,'0');
+  }
+  function addNode(cfg,level,name,parentId){
+    const n={id:nextId(cfg),level,name,parentId:parentId||'',businessOwner:'',productManager:'',technicalOwner:'',status:'Active'};
+    cfg.taxonomy.push(n);return n;
+  }
+  function findChild(cfg,level,name,parentId){return cfg.taxonomy.find(n=>n.level===level&&n.name===name&&(n.parentId||'')===(parentId||''));}
+
+  function mergeLegacySubs(cfg){
+    Object.entries(LEGACY_SUB_ALIASES).forEach(([legacyName,canonicalName])=>{
+      if(legacyName===canonicalName)return;
+      cfg.taxonomy.filter(n=>n.level==='Sub-Category'&&n.name===legacyName).forEach(legacyNode=>{
+        const canonicalNode=findChild(cfg,'Sub-Category',canonicalName,legacyNode.parentId);
+        if(!canonicalNode){legacyNode.name=canonicalName;return;}
+        cfg.taxonomy.filter(n=>n.parentId===legacyNode.id).forEach(child=>{
+          const dup=cfg.taxonomy.find(n=>n.id!==child.id&&n.level===child.level&&n.name===child.name&&n.parentId===canonicalNode.id);
+          if(dup){
+            cfg.taxonomy.filter(g=>g.parentId===child.id).forEach(g=>{g.parentId=dup.id;});
+            cfg.taxonomy=cfg.taxonomy.filter(n=>n.id!==child.id);
+          } else {
+            child.parentId=canonicalNode.id;
+          }
+        });
+        cfg.taxonomy=cfg.taxonomy.filter(n=>n.id!==legacyNode.id);
+      });
+    });
+  }
+
+  function seedDefaultOfferings(cfg){
+    cfg.taxonomy.filter(n=>n.level==='Sub-Category'&&n.status!=='Archived').forEach(sn=>{
+      if(cfg.taxonomy.some(n=>n.level==='Offering'&&n.parentId===sn.id))return;
+      const cn=cfg.taxonomy.find(n=>n.id===sn.parentId);if(!cn)return;
+      const fn=cfg.taxonomy.find(n=>n.id===cn.parentId);if(!fn)return;
+      const dn=cfg.taxonomy.find(n=>n.id===fn.parentId);if(!dn)return;
+      const key=[dn.name,fn.name,cn.name,sn.name].join('|');
+      (DEFAULT_OFFERINGS[key]||['Standard '+sn.name]).forEach(name=>{
+        const off=addNode(cfg,'Offering',name,sn.id);
+        addNode(cfg,'Variant','Standard',off.id);
+      });
+    });
+  }
+
+  const baseRepair=window.v41RepairClassificationModel;
+  window.v41RepairClassificationModel=function(){
+    const result=baseRepair();
+    const cfg=adm31Cfg();
+    mergeLegacySubs(cfg);
+    seedDefaultOfferings(cfg);
+    return cfg.taxonomy;
+  };
+  window.v41RepairClassificationModel();
+})();
+</script>
+
+<script>
+/* v50 - Data Bundle Offering Type -> Variant cascade.
+   Product Category -> Sub-Category (existing taxonomy) -> Offering Type -> Variant.
+   Offering Type / Variant are admin-managed reference lists (Administration >
+   Product Classification), scoped per Sub-Category, editable without code
+   changes. The underlying "offering" / "variant" fields on templates and
+   product requests are unchanged; only where their values come from (and
+   what the picker looks like) changes for the Data Bundles category. */
+(function(){
+  const DEFAULT_OFFERING_TYPES=['Bundle / Pack','Add-on','Booster','Promotional Offer','Subscription'];
+  const DEFAULT_VARIANTS_BY_TYPE={
+    'Bundle / Pack':['Daily','Weekly','Monthly','Quarterly','Night','Weekend','Social','Video / Streaming','Large Data / Mega','Hourly','Custom'],
+    'Add-on':['Extra Data','Social Add-on','Video / YouTube Add-on','Night Add-on','Weekend Add-on','Custom Add-on'],
+    'Booster':['Data Booster','Speed Booster','Validity Extension'],
+    'Promotional Offer':['Acquisition','Retention','Win-back','Seasonal','Campaign','Loyalty Reward'],
+    'Subscription':['One-off','Auto-renewing','Recurring Subscription']
+  };
+  const RETAG_MAP={
+    'PRD-2201':{type:'Bundle / Pack',variant:'Daily'},
+    'PRD-2101':{type:'Bundle / Pack',variant:'Hourly'},
+    'PRD-2244':{type:'Bundle / Pack',variant:'Weekly'},
+    'PRD-2290':{type:'Bundle / Pack',variant:'Monthly'},
+    'PRD-2255':{type:'Bundle / Pack',variant:'Social'},
+    'PRD-2320':{type:'Bundle / Pack',variant:'Large Data / Mega'},
+    'PRD-2410':{type:'Bundle / Pack',variant:'Custom'},
+    'PRD-2317':{type:'Bundle / Pack',variant:'Monthly'}
+  };
+
+  function nextRefId(arr,prefix){
+    const max=arr.reduce((m,x)=>Math.max(m,Number(String(x.id||'').replace(/\D/g,''))||0),0);
+    return prefix+'-'+String(max+1).padStart(3,'0');
+  }
+  function dataBundleSubs(cfg){
+    const cats=cfg.taxonomy.filter(n=>n.level==='Category'&&n.name==='Data Bundles');
+    return cfg.taxonomy.filter(n=>n.level==='Sub-Category'&&cats.some(c=>c.id===n.parentId));
+  }
+  function v50EnsureRefData(){
+    const cfg=adm31Cfg();
+    cfg.offeringTypes=cfg.offeringTypes||[];
+    cfg.offeringVariants=cfg.offeringVariants||[];
+    dataBundleSubs(cfg).forEach(sub=>{
+      DEFAULT_OFFERING_TYPES.forEach(typeName=>{
+        let ot=cfg.offeringTypes.find(o=>o.subCategoryId===sub.id&&o.name===typeName);
+        if(!ot){ot={id:nextRefId(cfg.offeringTypes,'OT'),subCategoryId:sub.id,name:typeName,status:'Active'};cfg.offeringTypes.push(ot);}
+        (DEFAULT_VARIANTS_BY_TYPE[typeName]||[]).forEach(vName=>{
+          if(!cfg.offeringVariants.some(v=>v.offeringTypeId===ot.id&&v.name===vName))cfg.offeringVariants.push({id:nextRefId(cfg.offeringVariants,'OV'),offeringTypeId:ot.id,name:vName,status:'Active'});
+        });
+      });
+    });
+  }
+  function v50OfferingTypes(subId){v50EnsureRefData();return adm31Cfg().offeringTypes.filter(o=>o.subCategoryId===subId&&o.status==='Active').sort((a,b)=>a.name.localeCompare(b.name));}
+  function v50Variants(subId,typeName){
+    v50EnsureRefData();const cfg=adm31Cfg();
+    const ot=cfg.offeringTypes.find(o=>o.subCategoryId===subId&&o.name===typeName&&o.status==='Active');if(!ot)return [];
+    return cfg.offeringVariants.filter(v=>v.offeringTypeId===ot.id&&v.status==='Active').sort((a,b)=>a.name.localeCompare(b.name));
+  }
+  function v50FindSubId(domainName,familyName,categoryName,subName){
+    const cfg=adm31Cfg();
+    const dn=cfg.taxonomy.find(n=>n.level==='Domain'&&n.name===domainName);if(!dn)return null;
+    const fn=cfg.taxonomy.find(n=>n.level==='Family'&&n.name===familyName&&n.parentId===dn.id);if(!fn)return null;
+    const cn=cfg.taxonomy.find(n=>n.level==='Category'&&n.name===categoryName&&n.parentId===fn.id);if(!cn)return null;
+    const sn=cfg.taxonomy.find(n=>n.level==='Sub-Category'&&n.name===subName&&n.parentId===cn.id);if(!sn)return null;
+    return sn.id;
+  }
+  function v50RetagProducts(){
+    Object.entries(RETAG_MAP).forEach(([id,tag])=>{
+      const p=DATA.products.find(x=>x.id===id);if(!p)return;
+      p.offering=tag.type;p.variant=tag.variant;
+      if(p.current){p.current.offering=tag.type;p.current.variant=tag.variant;}
+    });
+  }
+  v50RetagProducts();
+
+  /* --- Template creation: swap the Offering/Variant block for Data Bundles --- */
+  const v50TplFieldsBase=v38TemplateClassificationFields;
+  v38TemplateClassificationFields=function(d){
+    const html=v50TplFieldsBase(d);
+    const category=d.meta.category||d.fields.cat;
+    if(category!=='Data Bundles')return html;
+    const subId=v50FindSubId(d.fields.division||d.meta.division,d.meta.productFamily||d.fields.productFamily,category,d.meta.subcategory||d.fields.subcategory);
+    const types=subId?v50OfferingTypes(subId):[];
+    const typeSelected=d.meta.offeringMode==='Selected offering';
+    const variants=(subId&&typeSelected&&d.meta.offering)?v50Variants(subId,d.meta.offering):[];
+    const variantSelected=typeSelected&&d.meta.variantMode==='Selected variant';
+    const block=`<div class="field"><label>Offering Type applicability<span class="req">*</span></label><select data-tmeta="offeringMode" ${subId?'':'disabled'}><option ${d.meta.offeringMode==='All offerings in this sub-category'?'selected':''}>All offerings in this sub-category</option><option ${typeSelected?'selected':''}>Selected offering</option></select></div>
+    ${typeSelected?`<div class="field"><label>Offering Type<span class="req">*</span></label><select data-tmeta="offering" ${subId?'':'disabled'}><option value="">${subId?'Select offering type':'Select sub-category first'}</option>${types.map(t=>`<option ${d.meta.offering===t.name?'selected':''}>${esc(t.name)}</option>`).join('')}</select><span class="helper">The commercial construct being sold, for example Bundle / Pack or Add-on.</span></div>`:''}
+    <div class="field"><label>Variant applicability<span class="req">*</span></label><select data-tmeta="variantMode" ${typeSelected?'':'disabled'}><option ${d.meta.variantMode==='All variants in scope'?'selected':''}>All variants in scope</option><option ${d.meta.variantMode==='Selected variant'?'selected':''}>Selected variant</option></select>${typeSelected?'':'<span class="helper">All variants are included when the template applies to all offering types.</span>'}</div>
+    ${variantSelected?`<div class="field"><label>Variant<span class="req">*</span></label><select data-tmeta="variant"><option value="">Select variant</option>${variants.map(v=>`<option ${d.meta.variant===v.name?'selected':''}>${esc(v.name)}</option>`).join('')}</select><span class="helper">Depends on the Offering Type selected above.</span></div>`:''}`;
+    return html.replace(/<div class="field"><label>Product Offering applicability<span class="req">\*<\/span><\/label>[\s\S]*?(?=<div class="field"><label>Effective from)/,block);
+  };
+
+  /* --- Product request wizard: swap the Offering/Variant block for Data Bundles --- */
+  const v50WizardSectionBase=wizardConfigSectionHTML;
+  wizardConfigSectionHTML=function(w,f,cur,active){
+    const html=v50WizardSectionBase(w,f,cur,active);
+    if(active!=='classification'||f.cat!=='Data Bundles')return html;
+    const subId=v50FindSubId(f.division,f.productFamily,f.cat,f.subcategory);
+    const types=subId?v50OfferingTypes(subId):[];
+    const variants=(subId&&f.offering)?v50Variants(subId,f.offering):[];
+    const block=`<div class="field"><label>Offering Type<span class="req">*</span></label><select data-f="offering" ${subId?'':'disabled'}><option value="">${subId?'Select offering type':'Select sub-category first'}</option>${types.map(t=>`<option ${f.offering===t.name?'selected':''}>${esc(t.name)}</option>`).join('')}</select><span class="helper">The commercial construct being sold, for example Bundle / Pack or Add-on.</span></div>
+    <div class="field"><label>Variant<span class="req">*</span></label><select data-f="variant" ${f.offering?'':'disabled'}><option value="">${f.offering?'Select variant':'Select offering type first'}</option>${variants.map(v=>`<option ${f.variant===v.name?'selected':''}>${esc(v.name)}</option>`).join('')}</select><span class="helper">Depends on the Offering Type selected above.</span></div>`;
+    return html.replace(/<div class="field"><label>Product Offering<span class="req">\*<\/span><\/label>[\s\S]*?<\/div>\s*<div class="field"><label>Product Variant<span class="req">\*<\/span><\/label>[\s\S]*?<\/div>/,block);
+  };
+
+  /* --- Administration > Product Classification: manage the reference lists --- */
+  function v50OfferingRefCard(){
+    v50EnsureRefData();
+    const cfg=adm31Cfg();
+    const subs=dataBundleSubs(cfg);
+    if(!subs.length)return '';
+    const subId=(state.v50Sub&&subs.some(s=>s.id===state.v50Sub))?state.v50Sub:subs[0].id;
+    state.v50Sub=subId;
+    const types=v50OfferingTypes(subId).concat(cfg.offeringTypes.filter(t=>t.subCategoryId===subId&&t.status!=='Active'));
+    return `<div class="card" style="margin-top:16px"><div class="card-head"><div><h3>Data Bundle commercial constructs</h3><p>Admin-managed Offering Type and Variant reference data. Product Offering / Product Variant selectors in templates and product requests for Data Bundles are built from this list only — add a new value here, no code change required.</p></div><button class="btn mtn" data-act="v50TypeAdd" data-sub="${subId}">+ Offering Type</button></div>
+      <div class="field" style="max-width:360px;margin:14px 14px 0"><label>Sub-Category</label><select data-act-change="v50SubPick">${subs.map(s=>`<option value="${s.id}" ${s.id===subId?'selected':''}>${esc(s.name)}</option>`).join('')}</select></div>
+      <div class="table-wrap" style="border:0;border-radius:0"><table><thead><tr><th>Offering Type</th><th>Status</th><th>Variants</th><th></th></tr></thead><tbody>${types.map(t=>{
+        const vs=cfg.offeringVariants.filter(v=>v.offeringTypeId===t.id);
+        return `<tr><td><strong>${esc(t.name)}</strong></td><td><span class="pill ${t.status==='Active'?'green':'grey'} plain">${t.status}</span></td><td>${vs.map(v=>`<span class="pill blue plain" style="margin:2px 4px 2px 0">${esc(v.name)}${v.status!=='Active'?' (archived)':''}</span>`).join('')||'<span class="small muted">None yet</span>'} <button class="btn small" data-act="v50VariantAdd" data-type="${t.id}">+ Variant</button></td><td><button class="btn small" data-act="v50TypeToggle" data-id="${t.id}">${t.status==='Active'?'Archive':'Reactivate'}</button></td></tr>`;
+      }).join('')}</tbody></table></div></div>`;
+  }
+  const v50TaxScreenBase=v37TaxonomyScreen;
+  v37TaxonomyScreen=function(){return v50TaxScreenBase()+v50OfferingRefCard();};
+
+  document.addEventListener('change',e=>{
+    const t=e.target;if(!t||!t.dataset)return;
+    if(t.dataset.actChange==='v50SubPick'){state.v50Sub=t.value;render();}
+  },true);
+
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('[data-act]');if(!b)return;
+    const a=b.dataset.act;
+    if(a==='v50TypeAdd'){
+      e.preventDefault();e.stopImmediatePropagation();
+      openModal(modalShell('Add Offering Type','New commercial construct for this Sub-Category.','<div class="form"><div class="field full"><label>Name<span class="req">*</span></label><input id="v50-type-name" placeholder="e.g. 5G Booster"></div></div>',`<button class="btn" data-act="closeModal">Cancel</button><button class="btn mtn" data-act="v50TypeSave" data-sub="${b.dataset.sub}">Save</button>`));
+      return;
+    }
+    if(a==='v50TypeSave'){
+      e.preventDefault();e.stopImmediatePropagation();
+      const name=(document.getElementById('v50-type-name')?.value||'').trim();
+      if(!name){toast('Name is required.');return;}
+      const cfg=adm31Cfg();
+      if(cfg.offeringTypes.some(t=>t.subCategoryId===b.dataset.sub&&t.name.toLowerCase()===name.toLowerCase())){toast('That Offering Type already exists.');return;}
+      cfg.offeringTypes.push({id:nextRefId(cfg.offeringTypes,'OT'),subCategoryId:b.dataset.sub,name,status:'Active'});
+      closeModal();render();toast('Offering Type added.');
+      return;
+    }
+    if(a==='v50TypeToggle'){
+      e.preventDefault();e.stopImmediatePropagation();
+      const cfg=adm31Cfg(),t=cfg.offeringTypes.find(x=>x.id===b.dataset.id);if(!t)return;
+      t.status=t.status==='Active'?'Archived':'Active';render();toast('Offering Type '+(t.status==='Active'?'reactivated':'archived')+'.');
+      return;
+    }
+    if(a==='v50VariantAdd'){
+      e.preventDefault();e.stopImmediatePropagation();
+      openModal(modalShell('Add Variant','New variant for this Offering Type.','<div class="form"><div class="field full"><label>Name<span class="req">*</span></label><input id="v50-variant-name" placeholder="e.g. Fortnightly"></div></div>',`<button class="btn" data-act="closeModal">Cancel</button><button class="btn mtn" data-act="v50VariantSave" data-type="${b.dataset.type}">Save</button>`));
+      return;
+    }
+    if(a==='v50VariantSave'){
+      e.preventDefault();e.stopImmediatePropagation();
+      const name=(document.getElementById('v50-variant-name')?.value||'').trim();
+      if(!name){toast('Name is required.');return;}
+      const cfg=adm31Cfg();
+      if(cfg.offeringVariants.some(v=>v.offeringTypeId===b.dataset.type&&v.name.toLowerCase()===name.toLowerCase())){toast('That Variant already exists.');return;}
+      cfg.offeringVariants.push({id:nextRefId(cfg.offeringVariants,'OV'),offeringTypeId:b.dataset.type,name,status:'Active'});
+      closeModal();render();toast('Variant added.');
+      return;
+    }
+  },true);
 })();
 </script>
 
