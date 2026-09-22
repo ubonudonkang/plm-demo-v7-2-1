@@ -10704,9 +10704,14 @@ plmBackendBootstrap();
     if(active!=='classification'||f.cat!=='Data Bundles')return html;
     const subId=v50FindSubId(f.division,f.productFamily,f.cat,f.subcategory);
     const types=subId?v50OfferingTypes(subId):[];
+    const tpl=(DATA.templates||[]).find(t=>t.id===f.template&&t.state==='Certified');
+    const lockOffering=!!(tpl&&tpl.offeringScope==='Selected offering'&&tpl.offering);
+    const lockVariant=!!(tpl&&tpl.variantScope==='Selected variant'&&tpl.variant);
     const variants=(subId&&f.offering)?v50Variants(subId,f.offering):[];
-    const block=`<div class="field"><label>Offering Type<span class="req">*</span></label><select data-f="offering" ${subId?'':'disabled'}><option value="">${subId?'Select offering type':'Select sub-category first'}</option>${types.map(t=>`<option ${f.offering===t.name?'selected':''}>${esc(t.name)}</option>`).join('')}</select><span class="helper">The commercial construct being sold, for example Bundle / Pack or Add-on.</span></div>
-    <div class="field"><label>Variant<span class="req">*</span></label><select data-f="variant" ${f.offering?'':'disabled'}><option value="">${f.offering?'Select variant':'Select offering type first'}</option>${variants.map(v=>`<option ${f.variant===v.name?'selected':''}>${esc(v.name)}</option>`).join('')}</select><span class="helper">Depends on the Offering Type selected above.</span></div>`;
+    const offeringHelper=lockOffering?'<span class="helper">Restricted by the certified template.</span>':'<span class="helper">The commercial construct being sold, for example Bundle / Pack or Add-on.</span>';
+    const variantHelper=lockVariant?'<span class="helper">Restricted by the certified template.</span>':'<span class="helper">Depends on the Offering Type selected above.</span>';
+    const block=`<div class="field"><label>Offering Type<span class="req">*</span></label><select data-f="offering" ${lockOffering||!subId?'disabled':''}><option value="">${subId?'Select offering type':'Select sub-category first'}</option>${types.map(t=>`<option ${f.offering===t.name?'selected':''}>${esc(t.name)}</option>`).join('')}</select>${offeringHelper}</div>
+    <div class="field"><label>Variant<span class="req">*</span></label><select data-f="variant" ${lockVariant||!f.offering?'disabled':''}><option value="">${f.offering?'Select variant':'Select offering type first'}</option>${variants.map(v=>`<option ${f.variant===v.name?'selected':''}>${esc(v.name)}</option>`).join('')}</select>${variantHelper}</div>`;
     return html.replace(/<div class="field"><label>Product Offering<span class="req">\*<\/span><\/label>[\s\S]*?<\/div>\s*<div class="field"><label>Product Variant<span class="req">\*<\/span><\/label>[\s\S]*?<\/div>/,block);
   };
 
