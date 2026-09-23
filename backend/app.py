@@ -944,7 +944,18 @@ def bootstrap_state(payload: StatePayload):
         # created by the prototype's setup functions. Do not overwrite an
         # already-enriched state unless it is still the untouched base seed.
         current = json.loads(row.state_json) if row else {}
-        should_enrich = len(payload.data.keys()) > len(current.keys()) or not current
+        # __seedVersion is a plain marker the frontend bumps whenever its
+        # built-in seed data changes (new users, templates, taxonomy, admin
+        # config, etc.) without necessarily adding a new top-level DATA key,
+        # which the key-count check below cannot detect on its own. A
+        # version bump always wins so a code deploy's seed data actually
+        # reaches an already-persisted deployment. Without a version on the
+        # incoming payload, only a strictly richer payload (or no persisted
+        # state yet) re-enriches, so a plain reload cannot clobber real
+        # interactive session state accumulated on this deployment.
+        incoming_version = payload.data.get("__seedVersion")
+        version_changed = bool(incoming_version) and incoming_version != current.get("__seedVersion")
+        should_enrich = len(payload.data.keys()) > len(current.keys()) or not current or version_changed
         if should_enrich:
             data = payload.data
             if row:
@@ -952,9 +963,10 @@ def bootstrap_state(payload: StatePayload):
                 row.updated_at = datetime.now(timezone.utc)
             else:
                 session.add(AppState(id=1, state_json=json.dumps(data, ensure_ascii=False)))
-            # Store the enriched demo seed as the reset baseline the first time.
+            # Store the enriched demo seed as the reset baseline the first time,
+            # or whenever the frontend's seed version has moved on.
             seed_row = session.get(SeedState, 1)
-            if seed_row and len(data.keys()) > len(json.loads(seed_row.state_json).keys()):
+            if seed_row and (version_changed or len(data.keys()) > len(json.loads(seed_row.state_json).keys())):
                 seed_row.state_json = json.dumps(data, ensure_ascii=False)
             normalize_state(data, session)
             sync_modules_from_state(data, session, actor="frontend-bootstrap")
@@ -979,23 +991,20 @@ def put_state(payload: StatePayload):
 
 @app.post("/api/demo/reset")
 def demo_reset():
+    # A frozen SeedState snapshot goes stale the moment the frontend's own
+    # seed data changes (new users, templates, taxonomy, etc.) without
+    # adding a brand new top-level DATA key, since /api/state/bootstrap only
+    # re-enriches when the incoming payload has strictly more top-level keys
+    # than what is already persisted. Restoring to that frozen snapshot here
+    # reproduced the same staleness "Reset Demo" was meant to fix. Instead,
+    # clear all persisted state outright so the very next page load re-seeds
+    # entirely from whatever the frontend currently defines.
     with Session(engine) as session:
-        seed_row = session.get(SeedState, 1)
-        if not seed_row:
-            raise HTTPException(500, "Seed state is unavailable")
-        data = json.loads(seed_row.state_json)
-        state_row = session.get(AppState, 1)
-        if state_row:
-            state_row.state_json = seed_row.state_json
-            state_row.updated_at = datetime.now(timezone.utc)
-        else:
-            session.add(AppState(id=1, state_json=seed_row.state_json))
-        normalize_state(data, session)
-        # Reset module rows to the prepared seed as well.
+        session.execute(delete(AppState))
+        session.execute(delete(SeedState))
         session.execute(delete(ModuleState))
-        sync_modules_from_state(data, session, actor="demo-reset")
         session.commit()
-    return {"ok": True, "data": data}
+    return {"ok": True}
 
 
 @app.get("/api/modules")

@@ -8995,7 +8995,19 @@ window.PLMDemoBackend={
   api:async(path,opts)=>{const r=await fetch('/api'+path,opts);if(!r.ok)throw new Error(await r.text());return r.json();}
 };
 window.addEventListener('pagehide',()=>{if(PLM_BACKEND.ready)plmPersistModules(true);});
-plmBackendBootstrap();
+/* Bumped whenever this file's built-in seed data changes (new users,
+   templates, taxonomy, admin config, etc.), so an already-persisted
+   deployment picks up the new seed on next load instead of silently
+   keeping its old data forever. See /api/state/bootstrap. */
+DATA.__seedVersion='2026-09-23.v52';
+/* Deferred to the window 'load' event rather than called here directly:
+   several later script blocks (taxonomy repair, product retagging,
+   notification seeding, etc.) still mutate DATA in place after this point,
+   and bootstrapping here would POST/sync a snapshot taken before those
+   mutations run, then overwrite the browser's fully-enriched DATA with
+   that earlier snapshot once the round-trip resolves. 'load' fires only
+   after every script on the page has finished executing. */
+window.addEventListener('load',plmBackendBootstrap);
 </script>
 
 <script>
@@ -11165,6 +11177,45 @@ plmBackendBootstrap();
     },0);
   },true);
 
+})();
+</script>
+
+<script>
+/* ============================================================
+   v52 - Expose "Reset Demo Data" in the UI.
+   /api/demo/reset already existed but nothing ever called it, and it
+   used to restore a frozen SeedState snapshot that goes stale the
+   moment seed data changes without adding a new top-level DATA key.
+   The backend now clears persisted state outright on reset; this adds
+   the button (Platform Administrator only) and confirmation flow.
+   ============================================================ */
+(function(){
+  const v52AdminBase=SCREENS.admin;
+  SCREENS.admin=function(){
+    const html=v52AdminBase();
+    const isAdmin=!(AUTH.account&&AUTH.account.dynamic)||v7ActiveRoleName()==='Platform Administrator';
+    if(!isAdmin||!html.includes('data-act="adm31ExportConfig"'))return html;
+    return html.replace('<button class="btn" data-act="adm31ExportConfig">','<button class="btn danger" data-act="v52ResetDemo">Reset Demo Data</button><button class="btn" data-act="adm31ExportConfig">');
+  };
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('[data-act="v52ResetDemo"]');if(!b)return;
+    e.preventDefault();e.stopImmediatePropagation();
+    openModal(modalShell('Reset Demo Data','This clears every persisted record on this deployment.',
+      '<div class="callout warn"><strong>This cannot be undone</strong>All requests, approvals, templates, users, taxonomy and configuration changes made on this deployment are discarded. The app reloads with a fresh baseline built from the current code.</div>',
+      '<button class="btn" data-act="closeModal">Cancel</button><button class="btn danger" data-act="v52ResetDemoConfirm">Reset Demo Data</button>'),{narrow:true});
+  },true);
+  document.addEventListener('click',async e=>{
+    const b=e.target.closest('[data-act="v52ResetDemoConfirm"]');if(!b)return;
+    e.preventDefault();e.stopImmediatePropagation();
+    setBusy(b,'Resetting…');
+    try{
+      if(typeof PLM_BACKEND==='undefined'||typeof PLM_BACKEND.reset!=='function')throw new Error('Reset is unavailable in local mode.');
+      await PLM_BACKEND.reset();
+    }catch(err){
+      b.disabled=false;b.textContent='Reset Demo Data';
+      toast('Reset failed: '+err.message);
+    }
+  },true);
 })();
 </script>
 
