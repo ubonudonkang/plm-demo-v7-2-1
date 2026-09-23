@@ -10782,5 +10782,391 @@ plmBackendBootstrap();
 })();
 </script>
 
+<script>
+/* ============================================================
+   v51 - Meeting notes batch (2026-09-23)
+   Additive layer following the same override pattern as v47-v50.
+   Only reassigns confirmed top-level (global) function names;
+   several v47-era helpers (v47CommercialPolicyHTML, certifiedOptions,
+   V47_DIFF_LABELS) live inside their own IIFE and are not reachable
+   here, so this hooks wizardConfigSectionHTML / validateWizard /
+   requestDetail etc. and splices the returned HTML instead.
+   ============================================================ */
+(function(){
+
+  function appendIntoLastCard(html,marker,fieldHtml){
+    if(!html.includes(marker))return html;
+    const idx=html.lastIndexOf('</div></div>');
+    if(idx<0)return html;
+    return html.slice(0,idx)+fieldHtml+html.slice(idx);
+  }
+
+  /* ---------- 1. Dedicated / Secondary Accounts (replaces the single
+     "Enable Bonus Account" toggle with a repeatable list: Bonus, Dedicated
+     or Combo accounts, each carrying Voice/Data/Both content, cost,
+     validity and depletion rate). Additive alongside the legacy Bonus
+     rate fields so existing tariff-plan data keeps working. ---------- */
+  const ACCOUNT_TYPES=['Bonus','Dedicated','Combo'];
+  const ACCOUNT_CONTENT=['Voice','Data','Both'];
+  function ensureAccounts(f){if(!Array.isArray(f.accounts))f.accounts=[];return f.accounts;}
+  function accountsTable(f,context){
+    const rows=ensureAccounts(f);
+    return `<div class="addon-toolbar"><span class="addon-summary">${rows.length} account${rows.length===1?'':'s'} configured</span><button class="btn sm mtn" data-act="v51AccountAdd" data-context="${context}">+ Add Account</button></div>${rows.length?`<div class="table-wrap" style="margin-top:12px"><table class="addon-table"><thead><tr><th>Name</th><th>Type</th><th>Content</th><th>Cost</th><th>Validity</th><th>Depletion rate</th><th></th></tr></thead><tbody>${rows.map((a,i)=>`<tr><td><strong>${esc(a.name||'—')}</strong></td><td>${esc(a.type||'—')}</td><td>${esc(a.content||'—')}</td><td>${esc(a.cost||'Free / N/A')}</td><td>${esc(a.validity||'—')}</td><td>${esc(a.depletionRate||'—')}</td><td class="actions"><button class="btn sm" data-act="v51AccountAdd" data-context="${context}" data-idx="${i}">Edit</button> <button class="btn sm danger" data-act="v51AccountDelete" data-context="${context}" data-idx="${i}">Delete</button></td></tr>`).join('')}</tbody></table></div>`:`<div class="empty"><strong>No dedicated accounts configured</strong>A dedicated account can carry Voice, Data, or both, each with its own cost, validity and depletion rate.</div>`}`;
+  }
+  function accountsCard(f,context){
+    return `<div class="card" style="margin-top:14px"><div class="card-head"><div><h3>Dedicated Accounts</h3><p>Beyond the standard Bonus Account, define one or more named accounts (for example a split combo like Betamix). Each account is independently configured.</p></div></div>${accountsTable(f,context)}</div>`;
+  }
+  const v51TplBonusBase=templateBonusEditor;
+  templateBonusEditor=function(d){return v51TplBonusBase(d)+accountsCard(d.fields,'template');};
+  const v51WizSectionBaseAcc=wizardConfigSectionHTML;
+  wizardConfigSectionHTML=function(w,f,cur,active){
+    const html=v51WizSectionBaseAcc(w,f,cur,active);
+    if(active!=='bonus')return html;
+    return html+accountsCard(f,'wizard');
+  };
+  function v51AccountFields(a){
+    a=a||{};
+    return `<div class="form"><div class="field full"><label>Account name<span class="req">*</span></label><input id="v51-acc-name" value="${esc(a.name||'')}" placeholder="e.g. Betamix"></div>
+      <div class="field"><label>Account type<span class="req">*</span></label><select id="v51-acc-type">${ACCOUNT_TYPES.map(x=>`<option ${a.type===x?'selected':''}>${x}</option>`).join('')}</select></div>
+      <div class="field"><label>Content<span class="req">*</span></label><select id="v51-acc-content">${ACCOUNT_CONTENT.map(x=>`<option ${a.content===x?'selected':''}>${x}</option>`).join('')}</select></div>
+      <div class="field"><label>Cost</label><input id="v51-acc-cost" value="${esc(a.cost||'')}" placeholder="e.g. Free, ₦50"></div>
+      <div class="field"><label>Validity</label><input id="v51-acc-validity" value="${esc(a.validity||'')}" placeholder="e.g. 30 Days"></div>
+      <div class="field"><label>Depletion rate</label><input id="v51-acc-depletion" value="${esc(a.depletionRate||'')}" placeholder="e.g. Used before main balance"></div>
+    </div>`;
+  }
+  function v51AccountsOf(context){return context==='template'?(state.templateDraft&&state.templateDraft.fields):(state.wizard&&state.wizard.fields);}
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
+    if(a==='v51AccountAdd'){
+      e.preventDefault();e.stopImmediatePropagation();
+      const idx=b.dataset.idx,f=v51AccountsOf(b.dataset.context);if(!f)return;
+      const existing=idx!==undefined?ensureAccounts(f)[Number(idx)]:null;
+      openModal(modalShell(existing?'Edit account':'Add account','Dedicated / Bonus / Combo account configuration.',v51AccountFields(existing),`<button class="btn" data-act="closeModal">Cancel</button><button class="btn mtn" data-act="v51AccountSave" data-context="${b.dataset.context}" data-idx="${idx===undefined?'':idx}">Save</button>`));
+      return;
+    }
+    if(a==='v51AccountSave'){
+      e.preventDefault();e.stopImmediatePropagation();
+      const f=v51AccountsOf(b.dataset.context);if(!f)return;
+      const name=(document.getElementById('v51-acc-name')?.value||'').trim();
+      if(!name){toast('Account name is required.');return;}
+      const acc={name,type:document.getElementById('v51-acc-type').value,content:document.getElementById('v51-acc-content').value,cost:(document.getElementById('v51-acc-cost')?.value||'').trim(),validity:(document.getElementById('v51-acc-validity')?.value||'').trim(),depletionRate:(document.getElementById('v51-acc-depletion')?.value||'').trim()};
+      const arr=ensureAccounts(f),idx=b.dataset.idx;
+      if(idx!==''&&idx!==undefined)arr[Number(idx)]=acc;else arr.push(acc);
+      f.bonusEnabled=f.bonusEnabled||arr.length>0;
+      closeModal();render();toast('Account saved.');
+      return;
+    }
+    if(a==='v51AccountDelete'){
+      e.preventDefault();e.stopImmediatePropagation();
+      const f=v51AccountsOf(b.dataset.context);if(!f)return;
+      ensureAccounts(f).splice(Number(b.dataset.idx),1);render();toast('Account removed.');
+      return;
+    }
+  },true);
+
+  /* ---------- 2. VAT percentage, defaulted from the governed baseline
+     "Tax treatment" value (e.g. "VAT at 7.5%"). ---------- */
+  function v51DefaultVatPct(){
+    const b=(DATA.baseline||[]).find(x=>x.id==='bg5');
+    const m=b&&String(b.value||'').match(/([\d.]+)\s*%/);
+    return m?m[1]:'7.5';
+  }
+
+  /* ---------- 3. Regulatory gating: Assessment required blocks submit;
+     Applicable / Conditional requires an evidence attachment; Not
+     applicable proceeds with nothing attached. ---------- */
+  function v51RegulatoryState(f){
+    const v=f.regulatoryApplicability||'';
+    if(v==='Assessment required')return 'blocked';
+    if(v==='Not applicable'||!v)return 'clear';
+    return 'evidence';
+  }
+  const v51WizSectionBaseCommercial=wizardConfigSectionHTML;
+  wizardConfigSectionHTML=function(w,f,cur,active){
+    let html=v51WizSectionBaseCommercial(w,f,cur,active);
+    if(active!=='commercialPolicy')return html;
+    if(!f.vatPercentage)f.vatPercentage=v51DefaultVatPct();
+    const vatReq=f.vatTreatment&&!['Not applicable','Non-VAT'].includes(f.vatTreatment);
+    const vatField=`<div class="field"><label>VAT percentage${vatReq?'<span class="req">*</span>':''}</label><input data-f="vatPercentage" value="${esc(f.vatPercentage||'')}" placeholder="e.g. 7.5"><span class="helper">Defaults from the governed VAT baseline; override only for an approved exception.</span></div>`;
+    html=appendIntoLastCard(html,'Commercial, Tax',vatField);
+    const regState=v51RegulatoryState(f);
+    if(regState==='blocked'){
+      html=appendIntoLastCard(html,'Commercial, Tax','<div class="callout warn" style="margin-top:14px;grid-column:1/-1"><strong>Regulatory assessment required</strong>This request cannot be submitted until the regulatory assessment is completed and the applicability is set to Applicable or Not applicable.</div>');
+    } else if(regState==='evidence'){
+      html=appendIntoLastCard(html,'Commercial, Tax',`<div class="field full" style="grid-column:1/-1"><label>Regulatory evidence<span class="req">*</span></label><input type="file" data-act-change="v51RegEvidence"><span class="helper">${f.regulatoryEvidenceFile?'Attached: '+esc(f.regulatoryEvidenceFile):'Attach the approval, filing or notification evidence for this regulatory applicability.'}</span></div>`);
+    }
+    return html;
+  };
+  document.addEventListener('change',e=>{
+    const t=e.target;if(!t||!t.dataset||t.dataset.actChange!=='v51RegEvidence'||!state.wizard)return;
+    const file=t.files&&t.files[0];
+    state.wizard.fields.regulatoryEvidenceFile=file?file.name:'';
+    render();
+  },true);
+  document.addEventListener('input',e=>{
+    const t=e.target;if(!t||!t.dataset||t.dataset.f!=='vatPercentage'||!state.wizard)return;
+    state.wizard.fields.vatPercentage=t.value;
+  },true);
+  const v51ValidateRegVatBase=validateWizard;
+  validateWizard=function(f){
+    const out=v51ValidateRegVatBase(f);
+    if(f.vatTreatment&&!['Not applicable','Non-VAT'].includes(f.vatTreatment)){
+      if(!f.vatPercentage)out.errs.push('VAT percentage is mandatory when VAT applies.');
+      else if(isNaN(Number(f.vatPercentage))||Number(f.vatPercentage)<0||Number(f.vatPercentage)>100)out.errs.push('VAT percentage must be a number from 0 to 100.');
+    }
+    const st=v51RegulatoryState(f);
+    if(st==='blocked')out.errs.push('Regulatory applicability is "Assessment required" — complete the assessment before this request can be submitted.');
+    if(st==='evidence'&&!f.regulatoryEvidenceFile)out.errs.push('Attach regulatory evidence before this request can be submitted.');
+    return out;
+  };
+
+  /* ---------- 4. Unused rollover only applies to data products.
+     ---------- 6. Grace period (days): days allowed after expiry for renewal. ---------- */
+  const v51WizSectionBaseEnt=wizardConfigSectionHTML;
+  wizardConfigSectionHTML=function(w,f,cur,active){
+    let html=v51WizSectionBaseEnt(w,f,cur,active);
+    if(active!=='entitlementPolicy')return html;
+    if(!isDataProduct(f)&&f.rolloverAllowed==='Yes'){
+      f.rolloverAllowed='Not applicable';f.rolloverCycles='';
+    }
+    if(!isDataProduct(f)){
+      html=appendIntoLastCard(html,'Eligibility, Renewal','<div class="callout info" style="margin-top:14px;grid-column:1/-1"><strong>Rollover is data-only</strong>Unused rollover only applies to data products. Rollover is fixed to Not applicable for this category.</div>');
+    }
+    const gp=`<div class="field"><label>Grace period (days)</label><input data-f="gracePeriodDays" value="${esc(f.gracePeriodDays||'')}" placeholder="e.g. 5"><span class="helper">Number of days allowed after expiry for renewal.</span></div>`;
+    html=appendIntoLastCard(html,'Eligibility, Renewal',gp);
+    return html;
+  };
+  document.addEventListener('input',e=>{
+    const t=e.target;if(!t||!t.dataset||t.dataset.f!=='gracePeriodDays'||!state.wizard)return;
+    state.wizard.fields.gracePeriodDays=t.value;
+  },true);
+  const v51ValidateGraceRollBase=validateWizard;
+  validateWizard=function(f){
+    const out=v51ValidateGraceRollBase(f);
+    if(f.gracePeriodDays&&(isNaN(Number(f.gracePeriodDays))||Number(f.gracePeriodDays)<0))out.errs.push('Grace period (days) must be a non-negative number.');
+    if(!isDataProduct(f)&&f.rolloverAllowed==='Yes')out.errs.push('Rollover only applies to data products.');
+    return out;
+  };
+
+  /* ---------- 5. Lock the source template dropdown once a template is
+     chosen (Use Template and New Product both land here), so it cannot
+     be switched by mistake. A deliberate "Change source template" action
+     is still available. ---------- */
+  const v51WizSectionBaseTpl=wizardConfigSectionHTML;
+  wizardConfigSectionHTML=function(w,f,cur,active){
+    const html=v51WizSectionBaseTpl(w,f,cur,active);
+    if(active!=='classification'||!['create','clone','modify'].includes(w.type)||!f.template)return html;
+    if(!html.includes('<select data-f="template">'))return html;
+    let out=html.replace('<select data-f="template">','<select data-f="template" disabled>');
+    out=out.replace(/(<select data-f="template" disabled>[\s\S]*?<\/select>)/,'$1<span class="helper">Locked to avoid switching templates by mistake.</span> <button type="button" class="btn sm" data-act="v51ChangeTemplate">Change source template</button>');
+    return out;
+  };
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('[data-act="v51ChangeTemplate"]');if(!b||!state.wizard)return;
+    e.preventDefault();e.stopImmediatePropagation();
+    openModal(modalShell('Change source template','This clears the current classification and configuration.','<div class="callout warn"><strong>This cannot be undone</strong>Switching the source template resets Domain, Family, Category, Sub-Category, Offering, Variant and any values inherited from the current template.</div>','<button class="btn" data-act="closeModal">Cancel</button><button class="btn mtn" data-act="v51ChangeTemplateConfirm">Change Template</button>'),{narrow:true});
+  },true);
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('[data-act="v51ChangeTemplateConfirm"]');if(!b||!state.wizard)return;
+    e.preventDefault();e.stopImmediatePropagation();
+    const w=state.wizard,keep={just:w.fields.just||'',sourceProductId:w.fields.sourceProductId,sourceProductName:w.fields.sourceProductName,currentStatus:w.fields.currentStatus,currentVersion:w.fields.currentVersion};
+    const fresh=newWizardFields('');fresh.template='';fresh.templateName='';
+    Object.keys(keep).forEach(k=>{if(keep[k]!==undefined)fresh[k]=keep[k];});
+    w.fields=fresh;closeModal();render();toast('Source template cleared. Select a new certified template.');
+  },true);
+
+  /* ---------- 7. Product Variant dropdown: admin-managed flat list
+     (Promotional, Combo, more to be added), for every category except
+     Data Bundles which keeps its own Offering Type -> Variant cascade. ---------- */
+  const V51_DEFAULT_VARIANT_TYPES=['Promotional','Combo'];
+  function v51EnsureVariantTypes(){
+    const cfg=adm31Cfg();
+    if(!Array.isArray(cfg.productVariantTypes))cfg.productVariantTypes=[];
+    V51_DEFAULT_VARIANT_TYPES.forEach(name=>{
+      if(!cfg.productVariantTypes.some(v=>v.name===name))cfg.productVariantTypes.push({id:'PVT-'+String(cfg.productVariantTypes.length+1).padStart(3,'0'),name,status:'Active'});
+    });
+    return cfg.productVariantTypes;
+  }
+  function v51VariantTypeOptions(){v51EnsureVariantTypes();return adm31Cfg().productVariantTypes.filter(v=>v.status==='Active').map(v=>v.name).sort();}
+  const v51TplFieldsBase2=v38TemplateClassificationFields;
+  v38TemplateClassificationFields=function(d){
+    const html=v51TplFieldsBase2(d);
+    const category=d.meta.category||d.fields.cat;
+    if(category==='Data Bundles')return html;
+    const opts=v51VariantTypeOptions();
+    return html.replace(/(<div class="field"><label>Variant<span class="req">\*<\/span><\/label><select data-tmeta="variant">)<option value="">Select variant<\/option>[\s\S]*?(<\/select>)/,
+      (m0,pre,post)=>`${pre}<option value="">Select variant</option>${opts.map(o=>`<option ${d.meta.variant===o?'selected':''}>${esc(o)}</option>`).join('')}${post}`);
+  };
+  const v51WizSectionBaseVar=wizardConfigSectionHTML;
+  wizardConfigSectionHTML=function(w,f,cur,active){
+    const html=v51WizSectionBaseVar(w,f,cur,active);
+    if(active!=='classification'||f.cat==='Data Bundles')return html;
+    const opts=v51VariantTypeOptions();
+    return html.replace(/(<div class="field"><label>Product Variant<span class="req">\*<\/span><\/label><select data-f="variant"[^>]*>)<option value="">[^<]*<\/option>[\s\S]*?(<\/select>)/,
+      (m0,pre,post)=>`${pre}<option value="">Select variant</option>${opts.map(o=>`<option ${f.variant===o?'selected':''}>${esc(o)}</option>`).join('')}${post}`);
+  };
+  function v51VariantAdminCard(){
+    v51EnsureVariantTypes();
+    const cfg=adm31Cfg();
+    return `<div class="card" style="margin-top:16px"><div class="card-head"><div><h3>Product Variant types</h3><p>Admin-managed Product Variant values used across every category except Data Bundles (which has its own Offering Type / Variant reference data).</p></div><button class="btn mtn" data-act="v51VariantTypeAdd">+ Variant type</button></div><div class="table-wrap" style="border:0;border-radius:0"><table><thead><tr><th>Name</th><th>Status</th><th></th></tr></thead><tbody>${cfg.productVariantTypes.map(v=>`<tr><td><strong>${esc(v.name)}</strong></td><td><span class="pill ${v.status==='Active'?'green':'grey'} plain">${v.status}</span></td><td><button class="btn small" data-act="v51VariantTypeToggle" data-id="${v.id}">${v.status==='Active'?'Archive':'Reactivate'}</button></td></tr>`).join('')}</tbody></table></div></div>`;
+  }
+  const v51TaxScreenBase2=v37TaxonomyScreen;
+  v37TaxonomyScreen=function(){return v51TaxScreenBase2()+v51VariantAdminCard();};
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
+    if(a==='v51VariantTypeAdd'){
+      e.preventDefault();e.stopImmediatePropagation();
+      openModal(modalShell('Add Product Variant type','New governed variant value.','<div class="form"><div class="field full"><label>Name<span class="req">*</span></label><input id="v51-vt-name" placeholder="e.g. Loyalty"></div></div>',`<button class="btn" data-act="closeModal">Cancel</button><button class="btn mtn" data-act="v51VariantTypeSave">Save</button>`));
+      return;
+    }
+    if(a==='v51VariantTypeSave'){
+      e.preventDefault();e.stopImmediatePropagation();
+      const name=(document.getElementById('v51-vt-name')?.value||'').trim();
+      if(!name){toast('Name is required.');return;}
+      const cfg=adm31Cfg();v51EnsureVariantTypes();
+      if(cfg.productVariantTypes.some(v=>v.name.toLowerCase()===name.toLowerCase())){toast('That Variant type already exists.');return;}
+      cfg.productVariantTypes.push({id:'PVT-'+String(cfg.productVariantTypes.length+1).padStart(3,'0'),name,status:'Active'});
+      closeModal();render();toast('Variant type added.');
+      return;
+    }
+    if(a==='v51VariantTypeToggle'){
+      e.preventDefault();e.stopImmediatePropagation();
+      const cfg=adm31Cfg(),v=cfg.productVariantTypes.find(x=>x.id===b.dataset.id);if(!v)return;
+      v.status=v.status==='Active'?'Archived':'Active';render();toast('Variant type '+(v.status==='Active'?'reactivated':'archived')+'.');
+      return;
+    }
+  },true);
+
+  /* ---------- 8. Service Class(es): multi-select instead of free text. ---------- */
+  const SERVICE_CLASS_OPTIONS=['25','42','44','46','11','12','13','21','22','23','31','32','33','41'];
+  function v51ServiceClasses(f){return String(f.serviceClass||'').split(',').map(s=>s.trim()).filter(Boolean);}
+  function v51ServiceClassField(w,f){
+    const locked=['create','clone'].includes(w.type)&&wizardTemplateLocked(f,'serviceClass');
+    const selected=v51ServiceClasses(f);
+    return `<div class="field full"><label>${isEnterprisePlan(f)?'Service Class(es)':'Service Class(es)'}${(!isDataProduct(f)&&(!isEnterprisePlan(f)||enterpriseRequiresServiceClass(f)))?'<span class="req">*</span>':''}</label><div class="checkbox-grid">${SERVICE_CLASS_OPTIONS.map(sc=>`<label class="checkbox-card"><input type="checkbox" data-act="v51ToggleServiceClass" data-sc="${sc}" ${selected.includes(sc)?'checked':''} ${locked?'disabled':''}> ${sc}</label>`).join('')}</div><span class="helper">Select every Service Class this product applies to. Customers on any selected class can use it.</span></div>`;
+  }
+  const v51WizSectionBaseSC=wizardConfigSectionHTML;
+  wizardConfigSectionHTML=function(w,f,cur,active){
+    const html=v51WizSectionBaseSC(w,f,cur,active);
+    if(active!=='classification')return html;
+    if(!/<div class="field"><label>Service Class(?:\(es\))?(?:<span[^>]*>[^<]*<\/span>)?<\/label><input data-f="serviceClass"/.test(html))return html;
+    return html.replace(/<div class="field"><label>Service Class(?:\(es\))?(?:<span[^>]*>[^<]*<\/span>)?<\/label><input data-f="serviceClass"[^>]*><\/div>/,v51ServiceClassField(w,f));
+  };
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('[data-act="v51ToggleServiceClass"]');if(!b||!state.wizard)return;
+    e.preventDefault();e.stopImmediatePropagation();
+    const f=state.wizard.fields,sc=b.dataset.sc,cur=v51ServiceClasses(f),i=cur.indexOf(sc);
+    if(i<0)cur.push(sc);else cur.splice(i,1);
+    f.serviceClass=cur.join(', ');render();
+  },true);
+
+  /* ---------- 9. Effective date cannot be in the past; stalled-pipeline
+     flag with a Return-to-Product-Owner-only gate once the date passes. ---------- */
+  function v51Today(){return new Date().toISOString().slice(0,10);}
+  const v51ValidateEffBase=validateWizard;
+  validateWizard=function(f){
+    const out=v51ValidateEffBase(f);
+    if(f.eff&&f.eff<v51Today())out.errs.push('Effective date cannot be in the past.');
+    return out;
+  };
+  function v51IsStalled(r){
+    if(!r||!r.requestData||!r.requestData.eff)return false;
+    if(!['Pending Approval','Testing','Reconciliation Pending'].includes(r.status))return false;
+    return r.requestData.eff<v51Today();
+  }
+  window.v51IsStalled=v51IsStalled;
+  const v51ReqDetailBase=requestDetail;
+  requestDetail=function(id,approvalMode){
+    let html=v51ReqDetailBase(id,approvalMode);
+    const r=DATA.requests.find(x=>x.id===id);
+    if(!v51IsStalled(r))return html;
+    const banner=`<div class="callout warn" style="margin:0 0 16px"><strong>Effective date has passed</strong>This request's effective date (${esc(r.requestData.eff)}) has passed while the product is still not live. It cannot proceed further at this stage. Return it to the Product Owner to set a new effective date.</div>`;
+    html=html.replace('<div class="title">',banner+'<div class="title">');
+    if(r.status==='Pending Approval'&&typeof v7CanApproveRequest==='function'&&v7CanApproveRequest(r)){
+      html=html.replace(/<button class="btn danger" data-act="reject"[^>]*>Reject<\/button>\s*/,'');
+      html=html.replace(/<button class="btn mtn" data-act="approve"[^>]*>Approve Request<\/button>/,'');
+    }
+    return html;
+  };
+  const v51ActionBlockedByStall=new Set(['approve','doApprove','acceptTests','approvePreTest','approvePostTest','deployToUAT','v37DeployUAT','startDeploy','v37DeployProduction','beginRelease']);
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
+    if(!v51ActionBlockedByStall.has(a))return;
+    const rid=b.dataset.id||(typeof pendingActionId!=='undefined'?pendingActionId:null)||state.sub;
+    const r=DATA.requests.find(x=>x.id===rid);
+    if(!v51IsStalled(r))return;
+    e.preventDefault();e.stopImmediatePropagation();
+    toast('Effective date has passed. Return this request to the Product Owner before it can proceed.');
+  },true);
+
+  /* ---------- 10. Reminders / notifications when plans are nearing
+     expiry. Seeds a governed notification rule; matching products get a
+     real entry in the existing notification bell (badge, panel, "View
+     all"), reusing that mechanism rather than building a new one. ---------- */
+  if(!DATA.notificationRules.some(r=>r.event==='Plan nearing expiry')){
+    DATA.notificationRules.push({id:'NR-'+String(DATA.notificationRules.length+1).padStart(3,'0'),event:'Plan nearing expiry',recipients:['Product Manager','Product Owner'],channels:['In-app'],severity:'Warning',reminder:'30 days before',mandatory:false,status:'Active'});
+  }
+  (function seedExpiryNotifications(){
+    const rule=DATA.notificationRules.find(r=>r.event==='Plan nearing expiry'&&r.status==='Active');
+    const days=rule?(Number((String(rule.reminder||'').match(/\d+/)||[])[0])||30):30;
+    const today=new Date(v51Today()+'T00:00:00'),cutoff=new Date(today.getTime()+days*86400000);
+    (DATA.products||[]).forEach(p=>{
+      const exp=p.current&&p.current.expiry;
+      if(!exp||exp==='N/A')return;
+      if(['Retired','Archived','Retiring'].includes(p.lifecycleState||p.status))return;
+      const d=new Date(exp+'T00:00:00');
+      if(d<today||d>cutoff)return;
+      const id='NOTIF-EXP-'+p.id;
+      if((DATA.notifications||[]).some(n=>n.id===id))return;
+      DATA.notifications=DATA.notifications||[];
+      DATA.notifications.unshift({id,title:'Plan nearing expiry',body:p.name+' expires '+exp+'.',ts:v51Today(),read:false,route:'catalogue',sub:p.id});
+    });
+  })();
+
+  /* ---------- 11 & 12. Channel-linked settings: service/app restriction
+     and a customer-facing message per selected channel, each with its
+     own word/character limit. ---------- */
+  const CHANNEL_MSG_LIMITS={USSD:182,SMS:160,MyMTN:300,'MyMTN App':300,eShop:500,Eshop:500,MoMo:160,'Enterprise Portal':500};
+  function v51ChannelLimit(ch){return CHANNEL_MSG_LIMITS[ch]||320;}
+  function v51ChannelSettings(f){if(!f.channelSettings||typeof f.channelSettings!=='object')f.channelSettings={};return f.channelSettings;}
+  function v51ChannelBlock(f,ch){
+    const cs=v51ChannelSettings(f)[ch]||{},limit=v51ChannelLimit(ch),msg=cs.message||'',len=msg.length;
+    const showScope=isDataProduct(f);
+    return `<div class="card" style="margin-top:10px"><div class="card-head"><div><h4 style="margin:0">${esc(ch)}</h4></div></div><div class="form">
+      ${showScope?`<div class="field full"><label>Service / app restriction</label><select data-act-change="v51ChanScope" data-ch="${esc(ch)}"><option value="">All data / no restriction</option>${['WhatsApp','Facebook','Ayoba','TikTok','YouTube','All Social Apps','Selected apps / services','Location restricted','Tariff restricted','Other'].map(o=>`<option ${cs.scope===o?'selected':''}>${o}</option>`).join('')}</select></div>`:''}
+      <div class="field full"><label>Customer message</label><textarea data-act-change="v51ChanMsg" data-ch="${esc(ch)}" maxlength="${limit}" placeholder="Message shown to the customer on ${esc(ch)}.">${esc(msg)}</textarea><span class="helper">${len} / ${limit} characters</span></div>
+    </div></div>`;
+  }
+  const v51WizSectionBaseChan=wizardConfigSectionHTML;
+  wizardConfigSectionHTML=function(w,f,cur,active){
+    const html=v51WizSectionBaseChan(w,f,cur,active);
+    if(active!=='channels')return html;
+    const chans=(f.channels||[]);
+    if(!chans.length)return html;
+    return html+`<div class="stack" style="margin-top:6px">${chans.map(ch=>v51ChannelBlock(f,ch)).join('')}</div>`;
+  };
+  document.addEventListener('input',e=>{
+    const t=e.target;if(!t||!t.dataset||!state.wizard)return;
+    const ch=t.dataset.ch;if(!ch)return;
+    const f=state.wizard.fields,cs=v51ChannelSettings(f);cs[ch]=cs[ch]||{};
+    if(t.dataset.actChange==='v51ChanMsg'){cs[ch].message=t.value;const helper=t.parentElement.querySelector('.helper');if(helper)helper.textContent=`${t.value.length} / ${v51ChannelLimit(ch)} characters`;}
+  },true);
+  document.addEventListener('change',e=>{
+    const t=e.target;if(!t||!t.dataset||!state.wizard)return;
+    const ch=t.dataset.ch;if(!ch)return;
+    const f=state.wizard.fields,cs=v51ChannelSettings(f);cs[ch]=cs[ch]||{};
+    if(t.dataset.actChange==='v51ChanScope')cs[ch].scope=t.value;
+  },true);
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('[data-act="toggleChannel"]');if(!b||!state.wizard)return;
+    setTimeout(()=>{
+      const f=state.wizard.fields,cs=v51ChannelSettings(f);
+      Object.keys(cs).forEach(ch=>{if(!(f.channels||[]).includes(ch))delete cs[ch];});
+    },0);
+  },true);
+
+})();
+</script>
+
 </body>
 </html>
