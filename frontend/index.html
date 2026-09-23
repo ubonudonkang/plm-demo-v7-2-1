@@ -8999,7 +8999,7 @@ window.addEventListener('pagehide',()=>{if(PLM_BACKEND.ready)plmPersistModules(t
    templates, taxonomy, admin config, etc.), so an already-persisted
    deployment picks up the new seed on next load instead of silently
    keeping its old data forever. See /api/state/bootstrap. */
-DATA.__seedVersion='2026-09-23.v52';
+DATA.__seedVersion='2026-09-23.v53';
 /* Deferred to the window 'load' event rather than called here directly:
    several later script blocks (taxonomy repair, product retagging,
    notification seeding, etc.) still mutate DATA in place after this point,
@@ -11209,8 +11209,8 @@ window.addEventListener('load',plmBackendBootstrap);
     e.preventDefault();e.stopImmediatePropagation();
     setBusy(b,'Resetting…');
     try{
-      if(typeof PLM_BACKEND==='undefined'||typeof PLM_BACKEND.reset!=='function')throw new Error('Reset is unavailable in local mode.');
-      await PLM_BACKEND.reset();
+      if(typeof PLMDemoBackend==='undefined'||typeof PLMDemoBackend.reset!=='function')throw new Error('Reset is unavailable in local mode.');
+      await PLMDemoBackend.reset();
     }catch(err){
       b.disabled=false;b.textContent='Reset Demo Data';
       toast('Reset failed: '+err.message);
