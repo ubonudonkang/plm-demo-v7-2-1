@@ -8490,7 +8490,10 @@ document.addEventListener('change',e=>{
 
 /* User-facing terminology: Product Classification is clearer than taxonomy. */
 function v38FriendlyTerminology(){
-  const root=document.body;if(!root)return;const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);nodes.forEach(n=>{if(!n.nodeValue||!n.nodeValue.match(/taxonomy/i))return;n.nodeValue=n.nodeValue.replace(/Taxonomy & Ownership/g,'Product Classification & Ownership').replace(/enterprise taxonomy/gi,'enterprise product classification').replace(/product taxonomy/gi,'product classification').replace(/taxonomy/gi,'product classification');});
+  const root=document.body;if(!root)return;
+  const skipTags=new Set(['SCRIPT','STYLE','TEXTAREA','TITLE']);
+  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>(n.parentElement&&skipTags.has(n.parentElement.tagName))?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});
+  const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);nodes.forEach(n=>{if(!n.nodeValue||!n.nodeValue.match(/taxonomy/i))return;n.nodeValue=n.nodeValue.replace(/Taxonomy & Ownership/g,'Product Classification & Ownership').replace(/enterprise taxonomy/gi,'enterprise product classification').replace(/product taxonomy/gi,'product classification').replace(/taxonomy/gi,'product classification');});
 }
 const v38RenderBase=render;
 render=function(){v38RenderBase();v38FriendlyTerminology();};
@@ -8999,7 +9002,7 @@ window.addEventListener('pagehide',()=>{if(PLM_BACKEND.ready)plmPersistModules(t
    templates, taxonomy, admin config, etc.), so an already-persisted
    deployment picks up the new seed on next load instead of silently
    keeping its old data forever. See /api/state/bootstrap. */
-DATA.__seedVersion='2026-09-23.v53';
+DATA.__seedVersion='2026-09-23.v54';
 /* Deferred to the window 'load' event rather than called here directly:
    several later script blocks (taxonomy repair, product retagging,
    notification seeding, etc.) still mutate DATA in place after this point,
