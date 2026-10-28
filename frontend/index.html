@@ -8994,7 +8994,7 @@ window.PLMDemoBackend={
   modules:()=>JSON.parse(JSON.stringify(PLM_BACKEND.modules)),
   conflicts:()=>PLM_BACKEND.conflicts.slice(),
   save:()=>plmPersistModules(true),
-  reset:async()=>{const r=await fetch('/api/demo/reset',{method:'POST'});if(!r.ok)throw new Error('Reset failed');location.reload();},
+  reset:async()=>{try{const r=await fetch('/api/demo/reset',{method:'POST'});if(!r.ok)throw new Error('Reset failed');}catch(e){/* Local mode (static hosting): state lives in memory, so a reload restores the seed baseline. */}location.reload();},
   api:async(path,opts)=>{const r=await fetch('/api'+path,opts);if(!r.ok)throw new Error(await r.text());return r.json();}
 };
 window.addEventListener('pagehide',()=>{if(PLM_BACKEND.ready)plmPersistModules(true);});
